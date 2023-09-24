@@ -1,3 +1,4 @@
+package application;
 import java.net.*;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -16,12 +17,19 @@ public class Application {
 		
 		Receiver receptor = new Receiver();
 		receptor.run();
-	
+		
+		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+		
+		
 
 	}
 	
 	public static void novaMensagem() {
-
+		
+		for(int i = 0; i<50;i++) {
+			System.out.println("");
+		}
+		
 	    Iterator<String> men = menssagens.iterator();
 	    
 	    while(men.hasNext()) {
