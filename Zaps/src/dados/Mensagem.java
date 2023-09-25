@@ -1,6 +1,6 @@
 package dados;
 
-
+//representa uma mensagem
 public class Mensagem {
 	private String body;
 	private int time;

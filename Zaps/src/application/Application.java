@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.io.*;
 
-
+//programa principal
 
 public class Application {
 	public static LinkedList<String> menssagens;

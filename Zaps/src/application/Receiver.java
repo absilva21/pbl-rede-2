@@ -2,6 +2,7 @@ package application;
 import java.net.*;
 import java.io.*;
 
+//representa o receptor de mensagens
 public class Receiver extends Thread {
 	
 	public Receiver() {
