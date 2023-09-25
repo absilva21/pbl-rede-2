@@ -21,8 +21,10 @@ public class Mensagem {
 		this.time = time;
 	}
 
-	public Mensagem() {
-	
+	public Mensagem(String b, int t) {
+		this.body = b;
+		this.time = t;
+		
 	}
 
 }
