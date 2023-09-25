@@ -23,6 +23,7 @@ public class Receiver extends Thread {
 				serverSocket.receive(receivePacket);
 				
 				String mensagem = new String(receivePacket.getData());
+				
 				System.out.println("\nchegou");
 				Application.menssagens.add(mensagem);
 				Application.novaMensagem();
