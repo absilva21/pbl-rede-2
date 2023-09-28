@@ -1,21 +1,21 @@
 package dados;
-import java.net.*;
+
 
 //representa uma mensagem enviada
 public class MensagemOut extends Mensagem {
 
-	private DatagramPacket destiny; 
+	private Cliente destiny; 
 
-	public MensagemOut(String b, int t, DatagramPacket d) {
+	public MensagemOut(String b, int t, Cliente c) {
 		super(b, t);
-		this.destiny = d;
+		this.destiny = c;
 	}
 
-	public DatagramPacket getDestiny() {
+	public Cliente getDestiny() {
 		return destiny;
 	}
 
-	public void setDestiny(DatagramPacket destiny) {
+	public void setDestiny(Cliente destiny) {
 		this.destiny = destiny;
 	}
 

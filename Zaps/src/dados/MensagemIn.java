@@ -1,20 +1,20 @@
 package dados;
-import java.net.*;
+
 
 public class MensagemIn extends Mensagem {
 	
-	private DatagramPacket source;
+	private Cliente source;
 	
-	public MensagemIn(String b, int t,DatagramPacket p) {
+	public MensagemIn(String b, int t, Cliente c) {
 		super(b,t);
-		this.source = p;
+		this.source = c;
 	}
 
-	public DatagramPacket getSource() {
+	public Cliente getSource() {
 		return source;
 	}
 
-	public void setSource(DatagramPacket source) {
+	public void setSource(Cliente source) {
 		this.source = source;
 	}
 

@@ -1,7 +1,7 @@
 package application;
 import java.net.*;
 import java.io.*;
-
+import dados.*;
 //representa o receptor de mensagens
 public class Receiver extends Thread {
 	
@@ -16,18 +16,20 @@ public class Receiver extends Thread {
 		DatagramSocket serverSocket;
 		try {
 			serverSocket = new DatagramSocket(porta);
-			byte[] receiveData = new byte[1024];
+			
 			System.out.println("aguardando mensagens...");
 			while(true) {
+				byte[] receiveData = new byte[1024];
 				DatagramPacket receivePacket = new DatagramPacket(receiveData,
 						receiveData.length);
 				serverSocket.receive(receivePacket);
 				
 				String mensagem = new String(receivePacket.getData());
-				
-				System.out.println("\nchegou");
-				Application.menssagens.add(mensagem);
-				Application.novaMensagem();
+				String origem = new String(receivePacket.getSocketAddress().toString());
+				int port = receivePacket.getPort();
+				Cliente c = new Cliente(origem,port);
+				MensagemIn m = new MensagemIn(mensagem,0,c);
+				Application.novaMensagem(m);
 			}
 			
 		} catch (IOException e) {
