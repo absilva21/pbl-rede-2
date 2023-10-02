@@ -10,7 +10,7 @@ public class MensagemOut extends Mensagem {
 		super(b, t);
 		this.destiny = c;
 	}
-
+	
 	public Cliente getDestiny() {
 		return destiny;
 	}

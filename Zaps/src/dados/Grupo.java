@@ -70,12 +70,24 @@ import java.util.LinkedList;
 			
 			if((search.equals(this.clientes.getLast()))&&(!search.getAddr().equals(c.getAddr()))) {
 				result = true;
-				this.clientes.add(c);
 				break;
 			}
 		}
-				
+		
+		if(this.clientes.size()==0) {
+			result = true;
+		}
+		
+		if(result) {
+			this.clientes.add(c);
+		}
+		
 		return result;
+	}
+	
+	public void send(String b) {
+		MensagemOut mensagemOut = new MensagemOut(b,0,null);
+		this.addMessage(mensagemOut);
 	}
 	
 	public Grupo(String name, String adm) {

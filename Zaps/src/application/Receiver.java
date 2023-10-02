@@ -1,7 +1,10 @@
 package application;
 import java.net.*;
 import java.io.*;
-import dados.*;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 //representa o receptor de mensagens
 public class Receiver extends Thread {
 	
@@ -22,14 +25,28 @@ public class Receiver extends Thread {
 				byte[] receiveData = new byte[1024];
 				DatagramPacket receivePacket = new DatagramPacket(receiveData,
 						receiveData.length);
+				
 				serverSocket.receive(receivePacket);
 				
-				String mensagem = new String(receivePacket.getData());
-				String origem = new String(receivePacket.getSocketAddress().toString());
-				int port = receivePacket.getPort();
-				Cliente c = new Cliente(origem,port);
-				MensagemIn m = new MensagemIn(mensagem,0,c);
-				Application.novaMensagem(m);
+				String payload = new String(receivePacket.getData());
+				
+				String[] payloadArray = payload.split("\n");
+				String[] typeArray = payloadArray[0].split(" ");
+				String[] bodyArray = payloadArray[1].split(" ");
+				
+				JSONParser parser = new JSONParser(); 
+				
+				try {
+					JSONObject json = (JSONObject) parser.parse(bodyArray[1]);
+					String mensagem = json.get("body").toString();
+					String origem = new String(receivePacket.getSocketAddress().toString());;
+					Application.novaMensagem(mensagem,0,origem);
+				}catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				
 			}
 			
 		} catch (IOException e) {
