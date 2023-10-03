@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 
@@ -83,7 +84,7 @@ public class Delivery extends Thread  {
 				byte[] buffer = new byte[1024];
 				InetAddress destiny = InetAddress.getByName(c.getAddr());
 				String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+localhost+"\",\"body\":\""+ mensagem+"\"}";
-				buffer = payload.getBytes();
+				buffer = payload.getBytes(StandardCharsets.UTF_8);;
 				DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,destiny,7000);
 				serverSocket.send(sendPacket);
 			}

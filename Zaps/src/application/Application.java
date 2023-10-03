@@ -11,6 +11,7 @@ public class Application {
 	public static LinkedList<Grupo> grupos;
 	public static LinkedList<Mensagem> menssagens;
 	public static int grupoView;
+	public static Receiver receptor;
 	
 	public static void main(String[] args) throws UnknownHostException {
 		
@@ -18,7 +19,7 @@ public class Application {
 		
 		grupoView = 0;
 		
-		menssagens = new  LinkedList<Mensagem>();
+
 		
 		InetAddress localhost = InetAddress.getLocalHost();
 		String ip = new String(localhost.getAddress());
@@ -28,7 +29,7 @@ public class Application {
 		
 		grupos.add(n);
 		
-		Receiver receptor = new Receiver();
+		receptor = new Receiver();
 		receptor.start();
 		
 		Scanner sc = new Scanner(System.in);
@@ -121,13 +122,26 @@ public class Application {
 	
 	public static void novaMensagem(String b, int t,String s) {
 		
-		menssagens.add(new MensagemIn(b,t,new Cliente(s,7010)));
+		
+		
+		try {
+			Grupo viewGroup = null;
+			viewGroup = grupos.get(grupoView-1);
+			
+			viewGroup.addMessage(new MensagemIn(b,t,new Cliente(s,7010)));
+			
+			
+		}catch(IndexOutOfBoundsException e) {
+			System.out.println("O grupo selecionado não exsite");
+		}
+		
 		
 		for(int i = 0; i<50;i++) {
 			System.out.println("");
 		}
 		
-	    exibir();
+		exibir();
+	   
 	}
 	
 	

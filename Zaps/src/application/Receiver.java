@@ -1,9 +1,17 @@
 package application;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.io.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import dados.Cliente;
+import dados.Grupo;
+import dados.Mensagem;
+import dados.MensagemIn;
+import dados.MensagemOut;
 
 //representa o receptor de mensagens
 public class Receiver extends Thread {
@@ -14,15 +22,14 @@ public class Receiver extends Thread {
 	}
 	
 	@Override
-	public void run() {
+	public  void run() {
 		int porta = 7000;
 		DatagramSocket serverSocket;
 		try {
 			serverSocket = new DatagramSocket(porta);
 			
-			System.out.println("aguardando mensagens...");
 			while(true) {
-				byte[] receiveData = new byte[1024];
+				byte[] receiveData = new byte[2048];
 				DatagramPacket receivePacket = new DatagramPacket(receiveData,
 						receiveData.length);
 				
@@ -31,16 +38,46 @@ public class Receiver extends Thread {
 				String payload = new String(receivePacket.getData());
 				
 				String[] payloadArray = payload.split("\n");
-				String[] typeArray = payloadArray[0].split(" ");
-				String[] bodyArray = payloadArray[1].split(" ");
+				System.out.println(payloadArray[1]);
+				int inicioJson = payloadArray[1].indexOf('{');
+				int fimJson = payloadArray[1].indexOf('}')+1;
+				String jsonBody = payloadArray[1].substring(inicioJson, fimJson);
+				
+			
 				
 				JSONParser parser = new JSONParser(); 
 				
+				
 				try {
-					JSONObject json = (JSONObject) parser.parse(bodyArray[1]);
+					JSONObject json = (JSONObject) parser.parse(jsonBody);
 					String mensagem = json.get("body").toString();
 					String origem = new String(receivePacket.getSocketAddress().toString());;
-					Application.novaMensagem(mensagem,0,origem);
+					Grupo viewGroup = null;
+					viewGroup = Application.grupos.get(Application.grupoView-1);
+					viewGroup.addMessage(new MensagemIn(mensagem,0,new Cliente(origem,7010)));
+					Iterator<Mensagem> i = viewGroup.getMensagens().iterator();
+					
+					for(int j = 0; j<50;j++) {
+						System.out.println("");
+					}
+					
+					 System.out.println("     "+viewGroup.getNome());
+					    while(i.hasNext()) {
+					    	Mensagem m = i.next();
+					    	
+					    	if(m instanceof MensagemIn) {
+					    		MensagemIn IN = (MensagemIn) m;
+					    		System.out.println(" \n"+IN.getSource().getAddr()+": \n		"+IN.getBody()+" "+IN.getTime()+"\n");
+					    	}
+					    	
+					    	if(m instanceof MensagemOut) {
+					    		MensagemOut out = (MensagemOut) m;
+					    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+" "+out.getTime()+"\n");
+					    	}
+					    }
+					    
+					    System.out.println("\ndigite uma mensageem para o grupo ou ENTER para sair:");
+					
 				}catch (ParseException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
