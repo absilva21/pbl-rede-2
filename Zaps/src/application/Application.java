@@ -12,6 +12,8 @@ public class Application {
 	public static LinkedList<Mensagem> menssagens;
 	public static int grupoView;
 	public static Receiver receptor;
+	public static String localhost;
+	
 	
 	public static void main(String[] args) throws UnknownHostException {
 		
@@ -21,10 +23,10 @@ public class Application {
 		
 
 		
-		InetAddress localhost = InetAddress.getLocalHost();
-		String ip = new String(localhost.getAddress());
+		InetAddress ip = InetAddress.getLocalHost();
+		localhost = ip.getHostAddress();
 		
-		Grupo n = new Grupo("uefs",ip);
+		Grupo n = new Grupo("uefs",localhost);
 		
 		
 		grupos.add(n);
@@ -84,7 +86,7 @@ public class Application {
 					Grupo g = grupos.get(grupoIndex-1);
 					System.out.println("\ndigite o ip do contato: ");
 					String addr = s.nextLine();					
-					Cliente c = new Cliente(addr,7010);
+					Cliente c = new Cliente(addr);
 					
 					g.addClient(c);
 					
@@ -108,12 +110,12 @@ public class Application {
 
 	}
 	
-	public static void enviar(String m, int g) {
+	public static void enviar(String m, int g) throws UnknownHostException {
 		Grupo grupo = grupos.get(g-1);
 		Iterator<Cliente> destinos = grupo.getClientes().iterator();
 		
 		Delivery d = new Delivery(destinos,grupo,m);
-		grupo.send(m);
+		grupo.send(m,localhost);
 		d.start();
 		
 
@@ -128,7 +130,7 @@ public class Application {
 			Grupo viewGroup = null;
 			viewGroup = grupos.get(grupoView-1);
 			
-			viewGroup.addMessage(new MensagemIn(b,t,new Cliente(s,7010)));
+			viewGroup.addMessage(new Mensagem(b,t,new Cliente(s)));
 			
 			
 		}catch(IndexOutOfBoundsException e) {
@@ -153,17 +155,16 @@ public class Application {
 			Iterator<Mensagem> men = viewGroup.getMensagens().iterator();
 		    System.out.println("     "+viewGroup.getNome());
 		    while(men.hasNext()) {
-		    	Mensagem mensagem = men.next();
+		    	Mensagem mens = men.next();
 		    	
-		    	if(mensagem instanceof MensagemIn) {
-		    		MensagemIn IN = (MensagemIn) mensagem;
+		    	if(mens.getSource().getAddr().equals(localhost)) {
+		    		Mensagem out = (Mensagem) men;
+		    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+" "+out.getTime()+"\n");
+		    	}else {
+		    		Mensagem IN = (Mensagem) mens;
 		    		System.out.println(" \n"+IN.getSource().getAddr()+": \n		"+IN.getBody()+" "+IN.getTime()+"\n");
 		    	}
-		    	
-		    	if(mensagem instanceof MensagemOut) {
-		    		MensagemOut out = (MensagemOut) mensagem;
-		    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+" "+out.getTime()+"\n");
-		    	}
+		    		
 		    }
 		    
 		    String mensagem = "";
@@ -182,6 +183,9 @@ public class Application {
 		     
 		}catch(IndexOutOfBoundsException e) {
 			System.out.println("O grupo selecionado não exsite");
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 

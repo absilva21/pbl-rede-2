@@ -85,8 +85,8 @@ import java.util.LinkedList;
 		return result;
 	}
 	
-	public void send(String b) {
-		MensagemOut mensagemOut = new MensagemOut(b,0,null);
+	public void send(String b,String c) {
+		Mensagem mensagemOut = new Mensagem(b,0,new Cliente(c));
 		this.addMessage(mensagemOut);
 	}
 	

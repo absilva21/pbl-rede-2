@@ -1,6 +1,5 @@
 package application;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.io.*;
 import org.json.simple.JSONObject;
@@ -10,8 +9,7 @@ import org.json.simple.parser.ParseException;
 import dados.Cliente;
 import dados.Grupo;
 import dados.Mensagem;
-import dados.MensagemIn;
-import dados.MensagemOut;
+
 
 //representa o receptor de mensagens
 public class Receiver extends Thread {
@@ -54,7 +52,7 @@ public class Receiver extends Thread {
 					String origem = new String(receivePacket.getSocketAddress().toString());;
 					Grupo viewGroup = null;
 					viewGroup = Application.grupos.get(Application.grupoView-1);
-					viewGroup.addMessage(new MensagemIn(mensagem,0,new Cliente(origem,7010)));
+					viewGroup.addMessage(new Mensagem(mensagem,0,new Cliente(origem)));
 					Iterator<Mensagem> i = viewGroup.getMensagens().iterator();
 					
 					for(int j = 0; j<50;j++) {
@@ -62,18 +60,20 @@ public class Receiver extends Thread {
 					}
 					
 					 System.out.println("     "+viewGroup.getNome());
+					
 					    while(i.hasNext()) {
 					    	Mensagem m = i.next();
 					    	
-					    	if(m instanceof MensagemIn) {
-					    		MensagemIn IN = (MensagemIn) m;
+					    	if(m.getSource().getAddr().equals(Application.localhost)) {
+					    		Mensagem out = (Mensagem) m;
+					    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+" "+out.getTime()+"\n");
+					    	}else {
+					    		Mensagem IN = (Mensagem) m;
 					    		System.out.println(" \n"+IN.getSource().getAddr()+": \n		"+IN.getBody()+" "+IN.getTime()+"\n");
+					    		
 					    	}
 					    	
-					    	if(m instanceof MensagemOut) {
-					    		MensagemOut out = (MensagemOut) m;
-					    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+" "+out.getTime()+"\n");
-					    	}
+					    	
 					    }
 					    
 					    System.out.println("\ndigite uma mensageem para o grupo ou ENTER para sair:");

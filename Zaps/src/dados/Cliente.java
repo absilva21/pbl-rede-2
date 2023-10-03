@@ -3,12 +3,12 @@ package dados;
 public class Cliente {
 	
 	private String addr;
-	private int port;
+	
 
-	public Cliente(String addr, int p) {
+	public Cliente(String addr) {
 		// TODO Auto-generated constructor stub
 		this.addr = addr;
-		this.port = p;
+		
 	}
 
 	public String getAddr() {
@@ -17,14 +17,6 @@ public class Cliente {
 
 	public void setAddr(String addr) {
 		this.addr = addr;
-	}
-
-	public int getPort() {
-		return port;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
 	}
 
 }

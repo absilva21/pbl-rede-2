@@ -7,6 +7,8 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
+import application.Application;
+
 
 public class Delivery extends Thread  {
 	
@@ -74,21 +76,23 @@ public class Delivery extends Thread  {
 		
 		try {
 			int porta = 7010;
-			;
+			
 			DatagramSocket serverSocket;
-			InetAddress localhost;
+
 			serverSocket = new DatagramSocket(porta);
-			localhost = InetAddress.getLocalHost();
+			
 			while(destinos.hasNext()) {
 				Cliente c = (Cliente) destinos.next();
 				byte[] buffer = new byte[1024];
 				InetAddress destiny = InetAddress.getByName(c.getAddr());
-				String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+localhost+"\",\"body\":\""+ mensagem+"\"}";
+				String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+Application.localhost+"\",\"body\":\""+ mensagem+"\"}";
 				buffer = payload.getBytes(StandardCharsets.UTF_8);;
 				DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,destiny,7000);
 				serverSocket.send(sendPacket);
 			}
 			
+			Grupo g = Application.grupos.get(Application.grupoView-1);
+			g.addMessage(new Mensagem(mensagem,0,new Cliente(Application.localhost)));
 			serverSocket.close();
 			
 		} catch (IOException e) {
