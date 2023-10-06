@@ -92,7 +92,7 @@ public class Delivery extends Thread  {
 			}
 			
 			Grupo g = Application.grupos.get(Application.grupoView-1);
-			g.addMessage(new Mensagem(mensagem,0,new Cliente(Application.localhost)));
+			g.addMessage(new Mensagem(mensagem,0,g.searchClient(Application.localhost)));
 			serverSocket.close();
 			
 		} catch (IOException e) {

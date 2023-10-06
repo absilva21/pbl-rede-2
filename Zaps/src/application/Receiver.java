@@ -6,7 +6,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import dados.Cliente;
 import dados.Grupo;
 import dados.Mensagem;
 
@@ -49,34 +48,59 @@ public class Receiver extends Thread {
 				try {
 					JSONObject json = (JSONObject) parser.parse(jsonBody);
 					String mensagem = json.get("body").toString();
-					String origem = new String(receivePacket.getSocketAddress().toString());;
+					String origem = json.get("origem").toString();
+					String destino = json.get("grupo").toString();
+					Grupo grupoDestino = grupoExiste(destino);
 					Grupo viewGroup = null;
-					viewGroup = Application.grupos.get(Application.grupoView-1);
-					viewGroup.addMessage(new Mensagem(mensagem,0,new Cliente(origem)));
-					Iterator<Mensagem> i = viewGroup.getMensagens().iterator();
 					
-					for(int j = 0; j<50;j++) {
-						System.out.println("");
+					if(grupoDestino!=null) {
+						
+						boolean participante = grupoDestino.isPart(origem);
+						
+						if(Application.grupoView>0&&participante) {
+							viewGroup = Application.grupos.get(Application.grupoView-1);
+							if(viewGroup.getNome().equals(grupoDestino.getNome())) {
+								viewGroup.addMessage(new Mensagem(mensagem,0,viewGroup.searchClient(origem)));
+								Iterator<Mensagem> i = viewGroup.getMensagens().iterator();
+								
+								for(int j = 0; j<50;j++) {
+									System.out.println("");
+								}
+								
+								 System.out.println("     "+viewGroup.getNome());
+								
+								    while(i.hasNext()) {
+								    	Mensagem m = i.next();
+								    	
+								    	if(m.getSource().getAddr().equals(Application.localhost)) {
+								    		Mensagem out = (Mensagem) m;
+								    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+" "+out.getTime()+"\n");
+								    	}else {
+								    		Mensagem IN = (Mensagem) m;
+								    		System.out.println(" \n"+IN.getSource().getAddr()+": \n		"+IN.getBody()+" "+IN.getTime()+"\n");
+								    		
+								    	}
+								    	
+								    	
+								    }
+								    
+								    System.out.println("\ndigite uma mensageem para o grupo ou ENTER para sair:");
+								
+							}else {
+								grupoDestino.addMessage(new Mensagem(mensagem,0,grupoDestino.searchClient(origem)));
+							}
+						}else {
+							if(participante) {
+								grupoDestino.addMessage(new Mensagem(mensagem,0,grupoDestino.searchClient(origem)));
+							}
+						}
 					}
 					
-					 System.out.println("     "+viewGroup.getNome());
 					
-					    while(i.hasNext()) {
-					    	Mensagem m = i.next();
-					    	
-					    	if(m.getSource().getAddr().equals(Application.localhost)) {
-					    		Mensagem out = (Mensagem) m;
-					    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+" "+out.getTime()+"\n");
-					    	}else {
-					    		Mensagem IN = (Mensagem) m;
-					    		System.out.println(" \n"+IN.getSource().getAddr()+": \n		"+IN.getBody()+" "+IN.getTime()+"\n");
-					    		
-					    	}
-					    	
-					    	
-					    }
-					    
-					    System.out.println("\ndigite uma mensageem para o grupo ou ENTER para sair:");
+					
+					
+					
+					
 					
 				}catch (ParseException e) {
 					// TODO Auto-generated catch block
@@ -93,6 +117,25 @@ public class Receiver extends Thread {
 		
 		
 			
+	}
+	
+	public Grupo grupoExiste(String grupo) {
+		
+		Grupo result = null;
+		
+		Iterator<Grupo> it = Application.grupos.iterator();
+		
+		while(it.hasNext()) {
+			Grupo g = (Grupo) it.next();
+			if(g.getNome().equals(grupo)) {
+				result = g;
+				break;
+			}
+		}
+		
+	
+		return result;
+		
 	}
 	
 }

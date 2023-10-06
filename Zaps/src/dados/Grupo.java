@@ -86,8 +86,40 @@ import java.util.LinkedList;
 	}
 	
 	public void send(String b,String c) {
-		Mensagem mensagemOut = new Mensagem(b,0,new Cliente(c));
+		Cliente origem = this.searchClient(c);
+		Mensagem mensagemOut = new Mensagem(b,0,origem);
 		this.addMessage(mensagemOut);
+	}
+	
+	
+	public Cliente searchClient(String ip) {
+		Cliente result = null;
+		
+		
+		Iterator<Cliente> i =this.clientes.iterator();
+		
+		while(i.hasNext()) {
+			Cliente c = (Cliente) i.next();
+			
+			if(c.getAddr().equals(ip)) {
+				result = c;
+				break;
+			}
+		}
+		
+		return result;
+	}
+	
+	public boolean isPart(String ip) {
+		boolean result = false;
+		
+		Cliente c = this.searchClient(ip);
+		
+		if(c!=null) {
+			result = true;
+		}
+		
+		return result;
 	}
 	
 	public Grupo(String name, String adm) {
@@ -96,6 +128,8 @@ import java.util.LinkedList;
 		this.adm = adm;
 		this.clientes = new LinkedList<Cliente>();
 		this.mensagens = new LinkedList<Mensagem>();
+		
+		this.addClient(new Cliente(adm,"você"));
 	}
 
 }

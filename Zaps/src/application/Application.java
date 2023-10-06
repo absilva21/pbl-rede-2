@@ -58,9 +58,15 @@ public class Application {
 					grupoView = Integer.parseInt(input); 
 					exibir();
 				}
-				
-				
 				    
+				
+			}
+			
+			if(com.equals("2")) {
+				System.out.println("\ndigite o nome do grupo: \n");
+				String nome = sc.nextLine();
+				grupos.add(new Grupo(nome,localhost));
+				
 				
 			}
 			
@@ -85,8 +91,10 @@ public class Application {
 				try {
 					Grupo g = grupos.get(grupoIndex-1);
 					System.out.println("\ndigite o ip do contato: ");
-					String addr = s.nextLine();					
-					Cliente c = new Cliente(addr);
+					String addr = s.nextLine();
+					System.out.println("\ndigite o nome do contato: ");
+					String nome = s.nextLine();
+					Cliente c = new Cliente(addr,nome);
 					
 					g.addClient(c);
 					
@@ -122,29 +130,8 @@ public class Application {
 		
 	}
 	
-	public static void novaMensagem(String b, int t,String s) {
-		
-		
-		
-		try {
-			Grupo viewGroup = null;
-			viewGroup = grupos.get(grupoView-1);
-			
-			viewGroup.addMessage(new Mensagem(b,t,new Cliente(s)));
-			
-			
-		}catch(IndexOutOfBoundsException e) {
-			System.out.println("O grupo selecionado não exsite");
-		}
-		
-		
-		for(int i = 0; i<50;i++) {
-			System.out.println("");
-		}
-		
-		exibir();
-	   
-	}
+	
+	
 	
 	
 	public static void exibir(){
