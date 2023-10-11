@@ -83,16 +83,17 @@ public class Delivery extends Thread  {
 			
 			while(destinos.hasNext()) {
 				Cliente c = (Cliente) destinos.next();
-				byte[] buffer = new byte[1024];
-				InetAddress destiny = InetAddress.getByName(c.getAddr());
-				String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+Application.localhost+"\",\"body\":\""+ mensagem+"\"}";
-				buffer = payload.getBytes(StandardCharsets.UTF_8);;
-				DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,destiny,7000);
-				serverSocket.send(sendPacket);
+				if(!c.getAddr().equals(Application.localhost)) {
+					byte[] buffer = new byte[1024];
+					InetAddress destiny = InetAddress.getByName(c.getAddr());
+					String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+Application.localhost+"\",\"body\":\""+ mensagem+"\"}";
+					buffer = payload.getBytes(StandardCharsets.UTF_8);;
+					DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,destiny,7000);
+					serverSocket.send(sendPacket);
+				}
+				
 			}
 			
-			Grupo g = Application.grupos.get(Application.grupoView-1);
-			g.addMessage(new Mensagem(mensagem,0,g.searchClient(Application.localhost)));
 			serverSocket.close();
 			
 		} catch (IOException e) {

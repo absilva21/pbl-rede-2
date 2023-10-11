@@ -35,7 +35,6 @@ public class Receiver extends Thread {
 				String payload = new String(receivePacket.getData());
 				
 				String[] payloadArray = payload.split("\n");
-				System.out.println(payloadArray[1]);
 				int inicioJson = payloadArray[1].indexOf('{');
 				int fimJson = payloadArray[1].indexOf('}')+1;
 				String jsonBody = payloadArray[1].substring(inicioJson, fimJson);
