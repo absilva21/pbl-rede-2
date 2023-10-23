@@ -85,6 +85,9 @@ public class Application {
 					Cliente c = new Cliente(addr,nome);
 					
 					g.addClient(c);
+					
+					Sync sync = new Sync(c.getAddr(),"add",g);
+					sync.start();
 										
 				}catch(IndexOutOfBoundsException e) {
 					System.out.println("\nO grupo selecionado não exsite\n");

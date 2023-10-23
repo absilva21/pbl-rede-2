@@ -87,14 +87,14 @@ public class Delivery extends Thread  {
 					byte[] buffer = new byte[1024];
 					InetAddress destiny = InetAddress.getByName(c.getAddr());
 					String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+Application.localhost+"\",\"body\":\""+ mensagem+"\"}";
-					buffer = payload.getBytes(StandardCharsets.UTF_8);;
+					buffer = payload.getBytes(StandardCharsets.UTF_8);
 					DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,destiny,7000);
 					serverSocket.send(sendPacket);
 				}
 				
 			}
 			
-			serverSocket.close();
+			
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

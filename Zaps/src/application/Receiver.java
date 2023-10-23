@@ -33,67 +33,80 @@ public class Receiver extends Thread {
 				serverSocket.receive(receivePacket);
 				
 				String payload = new String(receivePacket.getData());
-				
 				String[] payloadArray = payload.split("\n");
+				String[] tipoArray = payloadArray[0].split(" ");
 				int inicioJson = payloadArray[1].indexOf('{');
-				int fimJson = payloadArray[1].indexOf('}')+1;
+				int fimJson = payloadArray[1].lastIndexOf('}')+1;
 				String jsonBody = payloadArray[1].substring(inicioJson, fimJson);
 				
 			
 				
 				JSONParser parser = new JSONParser(); 
-				
+			
 				
 				try {
 					JSONObject json = (JSONObject) parser.parse(jsonBody);
-					String mensagem = json.get("body").toString();
-					String origem = json.get("origem").toString();
-					String destino = json.get("grupo").toString();
-					Grupo grupoDestino = grupoExiste(destino);
-					Grupo viewGroup = null;
+					String tipo = tipoArray[1];
 					
-					if(grupoDestino!=null) {
+					
+					if(tipo.equals("com")) {
 						
-						boolean participante = grupoDestino.isPart(origem);
+						System.out.println("\n"+json.toString());
 						
-						if(Application.grupoView>0&&participante) {
-							viewGroup = Application.grupos.get(Application.grupoView-1);
-							if(viewGroup.getNome().equals(grupoDestino.getNome())) {
-								viewGroup.addMessage(new Mensagem(mensagem,0,viewGroup.searchClient(origem)));
-								Iterator<Mensagem> i = viewGroup.getMensagens().iterator();
-								
-								for(int j = 0; j<50;j++) {
-									System.out.println("");
+					}
+					
+					
+					if(tipo.equals("men")) {
+						String mensagem = json.get("body").toString();
+						String origem = json.get("origem").toString();
+						String destino = json.get("grupo").toString();
+						Grupo grupoDestino = grupoExiste(destino);
+						Grupo viewGroup = null;
+						
+						if(grupoDestino!=null) {
+							
+							boolean participante = grupoDestino.isPart(origem);
+							
+							if(Application.grupoView>0&&participante) {
+								viewGroup = Application.grupos.get(Application.grupoView-1);
+								if(viewGroup.getNome().equals(grupoDestino.getNome())) {
+									viewGroup.addMessage(new Mensagem(mensagem,0,viewGroup.searchClient(origem)));
+									Iterator<Mensagem> i = viewGroup.getMensagens().iterator();
+									
+									for(int j = 0; j<50;j++) {
+										System.out.println("");
+									}
+									
+									 System.out.println("     "+viewGroup.getNome());
+									
+									    while(i.hasNext()) {
+									    	Mensagem m = i.next();
+									    	
+									    	if(m.getSource().getAddr().equals(Application.localhost)) {
+									    		Mensagem out = (Mensagem) m;
+									    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+" "+out.getTime()+"\n");
+									    	}else {
+									    		Mensagem IN = (Mensagem) m;
+									    		System.out.println(" \n"+IN.getSource().getAddr()+": \n		"+IN.getBody()+" "+IN.getTime()+"\n");
+									    		
+									    	}
+									    	
+									    	
+									    }
+									    
+									    System.out.println("\ndigite uma mensageem para o grupo ou ENTER para sair:");
+									
+								}else {
+									grupoDestino.addMessage(new Mensagem(mensagem,0,grupoDestino.searchClient(origem)));
 								}
-								
-								 System.out.println("     "+viewGroup.getNome());
-								
-								    while(i.hasNext()) {
-								    	Mensagem m = i.next();
-								    	
-								    	if(m.getSource().getAddr().equals(Application.localhost)) {
-								    		Mensagem out = (Mensagem) m;
-								    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+" "+out.getTime()+"\n");
-								    	}else {
-								    		Mensagem IN = (Mensagem) m;
-								    		System.out.println(" \n"+IN.getSource().getAddr()+": \n		"+IN.getBody()+" "+IN.getTime()+"\n");
-								    		
-								    	}
-								    	
-								    	
-								    }
-								    
-								    System.out.println("\ndigite uma mensageem para o grupo ou ENTER para sair:");
-								
 							}else {
-								grupoDestino.addMessage(new Mensagem(mensagem,0,grupoDestino.searchClient(origem)));
-							}
-						}else {
-							if(participante) {
-								grupoDestino.addMessage(new Mensagem(mensagem,0,grupoDestino.searchClient(origem)));
+								if(participante) {
+									grupoDestino.addMessage(new Mensagem(mensagem,0,grupoDestino.searchClient(origem)));
+								}
 							}
 						}
 					}
+					
 					
 					
 					
@@ -121,7 +134,6 @@ public class Receiver extends Thread {
 	public Grupo grupoExiste(String grupo) {
 		
 		Grupo result = null;
-		
 		Iterator<Grupo> it = Application.grupos.iterator();
 		
 		while(it.hasNext()) {
