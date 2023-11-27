@@ -4,6 +4,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.LinkedList;
+
+import application.Application;
 	
 	public class Grupo {
 	private String nome;
@@ -85,10 +87,8 @@ import java.util.LinkedList;
 		return result;
 	}
 	
-	public void send(String b,String c) {
-		Cliente origem = this.searchClient(c);
-		Mensagem mensagemOut = new Mensagem(b,0,origem);
-		this.addMessage(mensagemOut);
+	public void send(Mensagem m) {
+		this.addMessage(m);
 	}
 	
 	

@@ -2,10 +2,13 @@ package application;
 import java.net.*;
 import java.util.Iterator;
 import java.io.*;
+
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import dados.Cliente;
 import dados.Grupo;
 import dados.Mensagem;
 
@@ -52,14 +55,51 @@ public class Receiver extends Thread {
 					if(tipo.equals("com")) {
 						
 						System.out.println("\n"+json.toString());
+						String tipoCom = (String)json.get("com");
 						
+						if(tipoCom.equals("add")) {
+							JSONObject grupoJson = (JSONObject) json.get("body");
+							String nomeGrupo = (String) grupoJson.get("nome");
+							String admGrupo = (String) grupoJson.get("adm");
+							Grupo novoGrupo = new Grupo(nomeGrupo,admGrupo);
+							JSONArray mens = (JSONArray)  grupoJson.get("mensagens");
+							JSONArray partici =  (JSONArray) grupoJson.get("clientes");
+							
+							for(int i=0;i<partici.size();i++) {
+								JSONObject par = (JSONObject) partici.get(i);
+								String addr = (String) par.get("addr");
+								String nome = (String) par.get("nome");
+								Cliente c = new Cliente(addr,nome);
+								novoGrupo.addClient(c);	
+							}
+							
+							for(int i = 0;i<mens.size();i++) {
+								JSONObject mensa = (JSONObject) mens.get(i);
+								String bodyMen = (String) mensa.get("body");
+								String tempoMen = (String) mensa.get("temp");
+								String addrOri = (String) mensa.get("origem");
+								String nomeOri = (String) mensa.get("nomeOrigem");
+								int tempo = Integer.parseInt(tempoMen);
+								Cliente c = new Cliente(addrOri,nomeOri);
+								
+								Mensagem men = new Mensagem(bodyMen,tempo,c);
+								novoGrupo.addMessage(men);
+								
+							}
+							
+							synchronized(this) {
+								Main.grupos.add(novoGrupo);
+							}
+							
+						}
 					}
-					
 					
 					if(tipo.equals("men")) {
 						String mensagem = json.get("body").toString();
 						String origem = json.get("origem").toString();
 						String destino = json.get("grupo").toString();
+						String tempoString = (String) json.get("tempo");
+						int tempo = Integer.parseInt(tempoString);
 						Grupo grupoDestino = grupoExiste(destino);
 						Grupo viewGroup = null;
 						
@@ -67,10 +107,11 @@ public class Receiver extends Thread {
 							
 							boolean participante = grupoDestino.isPart(origem);
 							
-							if(Application.grupoView>0&&participante) {
-								viewGroup = Application.grupos.get(Application.grupoView-1);
+							if(Main.grupoView>0&&participante) {
+								viewGroup = Main.grupos.get(Main.grupoView-1);
 								if(viewGroup.getNome().equals(grupoDestino.getNome())) {
-									viewGroup.addMessage(new Mensagem(mensagem,0,viewGroup.searchClient(origem)));
+									
+									viewGroup.addMessage(new Mensagem(mensagem,tempo,viewGroup.searchClient(origem)));
 									Iterator<Mensagem> i = viewGroup.getMensagens().iterator();
 									
 									for(int j = 0; j<50;j++) {
@@ -82,7 +123,7 @@ public class Receiver extends Thread {
 									    while(i.hasNext()) {
 									    	Mensagem m = i.next();
 									    	
-									    	if(m.getSource().getAddr().equals(Application.localhost)) {
+									    	if(m.getSource().getAddr().equals(Main.localhost)) {
 									    		Mensagem out = (Mensagem) m;
 									    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+" "+out.getTime()+"\n");
 									    	}else {
@@ -97,11 +138,11 @@ public class Receiver extends Thread {
 									    System.out.println("\ndigite uma mensageem para o grupo ou ENTER para sair:");
 									
 								}else {
-									grupoDestino.addMessage(new Mensagem(mensagem,0,grupoDestino.searchClient(origem)));
+									grupoDestino.addMessage(new Mensagem(mensagem,Main.clock,grupoDestino.searchClient(origem)));
 								}
 							}else {
 								if(participante) {
-									grupoDestino.addMessage(new Mensagem(mensagem,0,grupoDestino.searchClient(origem)));
+									grupoDestino.addMessage(new Mensagem(mensagem,Main.clock,grupoDestino.searchClient(origem)));
 								}
 							}
 						}
@@ -134,7 +175,7 @@ public class Receiver extends Thread {
 	public Grupo grupoExiste(String grupo) {
 		
 		Grupo result = null;
-		Iterator<Grupo> it = Application.grupos.iterator();
+		Iterator<Grupo> it = Main.grupos.iterator();
 		
 		while(it.hasNext()) {
 			Grupo g = (Grupo) it.next();

@@ -73,7 +73,7 @@ public class Sync extends Thread {
 	@Override
 	public void run() {
 		try {
-			int porta = 7010;
+			int porta = 7020;
 			
 			DatagramSocket serverSocket;
 
@@ -101,6 +101,7 @@ public class Sync extends Thread {
 					jsonMensagem.put("origem", m.getSource().getAddr());
 					jsonMensagem.put("nomeOrigem", m.getSource().getNome());
 					jsonMensagem.put("body", m.getBody());
+					jsonMensagem.put("temp", m.getTime());
 					mensagens.add(jsonMensagem);
 				}
 				
