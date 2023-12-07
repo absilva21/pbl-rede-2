@@ -7,6 +7,8 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
+import org.json.simple.JSONArray;
+
 import application.Application;
 import application.Main;
 
@@ -83,12 +85,17 @@ public class Delivery extends Thread  {
 				Cliente c = (Cliente) destinos.next();
 				if(!c.getAddr().equals(Main.localhost)) {
 					int porta = 7010;
-					
+					int[] relogio = mensagem.getTime();
+					JSONArray relogioJson = new JSONArray();
+					for(int i = 0; i<relogio.length;i++) {
+						String valor = Integer.toString(relogio[i]);
+						relogioJson.add(valor);
+					}
 					DatagramSocket serverSocket;
 					serverSocket = new DatagramSocket(porta);
 					byte[] buffer = new byte[1024];
 					InetAddress destiny = InetAddress.getByName(c.getAddr());
-					String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+Main.localhost+"\",\"body\":\""+ mensagem.getBody()+"\",\"tempo\":\""+mensagem.getTime()+"\"}";
+					String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+Main.localhost+"\",\"body\":\""+ mensagem.getBody()+"\",\"tempo\":"+relogioJson.toJSONString()+",\"id\":\""+mensagem.getSource().getId()+"\"}";
 					buffer = payload.getBytes(StandardCharsets.UTF_8);
 					DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,destiny,7000);
 					serverSocket.send(sendPacket);

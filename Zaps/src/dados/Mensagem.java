@@ -3,7 +3,7 @@ package dados;
 //representa uma mensagem
 public class Mensagem {
 	private String body;
-	private int time;
+	private int[] time;
 	private Cliente source;
 	 
 
@@ -25,15 +25,15 @@ public class Mensagem {
 		this.body = body;
 	}
 
-	public int getTime() {
+	public int[] getTime() {
 		return time;
 	}
 
-	public void setTime(int time) {
+	public void setTime(int[] time) {
 		this.time = time;
 	}
 
-	public Mensagem(String b, int t, Cliente c) {
+	public Mensagem(String b, int[] t, Cliente c) {
 		this.body = b;
 		this.time = t;
 		this.source = c;

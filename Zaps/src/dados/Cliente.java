@@ -4,8 +4,17 @@ public class Cliente {
 	
 	private String addr;
 	private String nome;
+	private int id;
 	
 	
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	public String getNome() {
 		return nome;
@@ -19,6 +28,7 @@ public class Cliente {
 		// TODO Auto-generated constructor stub
 		this.addr = addr;
 		this.nome = n;
+		this.id = 0;
 	}
 
 	public String getAddr() {

@@ -23,20 +23,20 @@ import dados.Mensagem;
 
 public class Sync extends Thread {
 	
-	private String destino;
+	private Cliente destino;
 	private String tipo;
 	private Object mensagem;
 	
 	
 	
 
-	public String getDestino() {
+	public Cliente getDestino() {
 		return destino;
 	}
 
 
 
-	public void setDestino(String destino) {
+	public void setDestino(Cliente destino) {
 		this.destino = destino;
 	}
 
@@ -64,7 +64,7 @@ public class Sync extends Thread {
 		this.mensagem = mensagem;
 	}
 
-	public Sync(String d, String t, Object m) {
+	public Sync(Cliente d, String t, Object m) {
 		this.destino = d;
 		this.tipo = t;
 		this.mensagem = m;
@@ -101,6 +101,11 @@ public class Sync extends Thread {
 					jsonMensagem.put("origem", m.getSource().getAddr());
 					jsonMensagem.put("nomeOrigem", m.getSource().getNome());
 					jsonMensagem.put("body", m.getBody());
+					int[] tempo = m.getTime();
+					JSONArray tempoJson = new JSONArray(); 
+					for(int it = 0; it<tempo.length;it++) {
+						tempoJson.add(Integer.toString(tempo[it]));
+					}
 					jsonMensagem.put("temp", m.getTime());
 					mensagens.add(jsonMensagem);
 				}
@@ -110,28 +115,56 @@ public class Sync extends Thread {
 					JSONObject jsonCliente = new JSONObject();
 					jsonCliente.put("addr", c.getAddr());
 					jsonCliente.put("nome", c.getNome());
+					jsonCliente.put("id",c.getId());
 					clientes.add(jsonCliente);
 				}
 				
 				body.put("mensagens", mensagens);
 				body.put("clientes", clientes);
+				JSONObject json = new JSONObject();
+				json.put("com", this.tipo);
+				json.put("body", body);
+				
+				String pacote = "type: com\nbody: "+json.toJSONString();
+				
+				byte[] buffer = new byte[1024];
+				
+				buffer = pacote.getBytes(StandardCharsets.UTF_8);
+				InetAddress destiny = InetAddress.getByName(this.destino.getAddr());
+				DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,destiny,7000);
+				
+				serverSocket.send(sendPacket);
+				
+				
+				
+				Iterator<Cliente> it = g.getClientes().iterator();
+				
+				while(it.hasNext()) {
+					Cliente c = (Cliente) it.next();
+					JSONObject jsonCliente = new JSONObject();
+					jsonCliente.put("addr", this.destino.getAddr());
+					jsonCliente.put("nome",this.destino.getNome());
+					jsonCliente.put("id", this.destino.getId());
+					jsonCliente.put("grupo",g.getNome());
+					JSONObject jsonMen = new JSONObject();
+					jsonMen.put("com", "addc");
+					jsonMen.put("body", jsonCliente);
+					
+					if(!c.getAddr().equals(this.destino.getAddr())&&!c.getAddr().equals(Main.localhost)) {
+						String pacote2 = "type: com\nbody: "+jsonMen.toJSONString();
+						byte[] buffer2 = new byte[1024];
+						buffer = pacote2.getBytes(StandardCharsets.UTF_8);
+						InetAddress destiny2 = InetAddress.getByName(c.getAddr());
+						DatagramPacket sendPacket2 = new DatagramPacket(buffer2,buffer2.length,destiny2,7000);
+						serverSocket.send(sendPacket2);
+					}
+	
+				}
+				serverSocket.close();
 			}
 			
-			JSONObject json = new JSONObject();
-			json.put("com", this.tipo);
-			json.put("body", body);
+
 			
-			String pacote = "type: com\nbody: "+json.toJSONString();
-			
-			byte[] buffer = new byte[1024];
-			
-			buffer = pacote.getBytes(StandardCharsets.UTF_8);
-			InetAddress destiny = InetAddress.getByName(this.destino);
-			DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,destiny,7000);
-			
-			serverSocket.send(sendPacket);
-			
-			serverSocket.close();
 			
 			
 		}catch (IOException e) {

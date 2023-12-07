@@ -5,7 +5,8 @@ import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Scanner;
-
+import java.util.concurrent.locks.*;
+import java.util.Arrays;
 import dados.Cliente;
 import dados.Delivery;
 import dados.Grupo;
@@ -18,58 +19,19 @@ public class Main extends Thread {
 	public static int grupoView;
 	public static Receiver receptor;
 	public static String localhost;
-	public static int clock;
+
+	
+	
+	
 
 	public Main() {
-		// TODO Auto-generated constructor stub
-	}
-
-	public Main(Runnable target) {
-		super(target);
-		// TODO Auto-generated constructor stub
-	}
-
-	public Main(String name) {
-		super(name);
-		// TODO Auto-generated constructor stub
-	}
-
-	public Main(ThreadGroup group, Runnable target) {
-		super(group, target);
-		// TODO Auto-generated constructor stub
-	}
-
-	public Main(ThreadGroup group, String name) {
-		super(group, name);
-		// TODO Auto-generated constructor stub
-	}
-
-	public Main(Runnable target, String name) {
-		super(target, name);
-		// TODO Auto-generated constructor stub
-	}
-
-	public Main(ThreadGroup group, Runnable target, String name) {
-		super(group, target, name);
-		// TODO Auto-generated constructor stub
-	}
-
-	public Main(ThreadGroup group, Runnable target, String name, long stackSize) {
-		super(group, target, name, stackSize);
-		// TODO Auto-generated constructor stub
-	}
-
-	public Main(ThreadGroup group, Runnable target, String name, long stackSize, boolean inheritThreadLocals) {
-		super(group, target, name, stackSize, inheritThreadLocals);
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public void run() {
 		grupos = new  LinkedList<Grupo>();
-		clock = 0;
 		grupoView = 0;
-		
 		InetAddress ip = null;
 		try {
 			ip = InetAddress.getLocalHost();
@@ -114,16 +76,27 @@ public class Main extends Thread {
 			}
 			
 			if(com.equals("2")) {
-				synchronized (Application.class) {
-					System.out.println("\ndigite o nome do grupo: \n");
-					String nome = sc.nextLine();
+				ReadWriteLock  readWriteLock = new ReentrantReadWriteLock();
+				Lock lock = readWriteLock.writeLock();
+				System.out.println("\ndigite o nome do grupo: \n");
+				String nome = sc.nextLine();
+				try {
+					lock.lock();
 					grupos.add(new Grupo(nome,localhost));
+				}finally {
+					lock.unlock();
 				}
+				
 				
 			}
 			
 			if(com.equals("3")) {
-				synchronized (Application.class) {
+				
+				ReadWriteLock  readWriteLock = new ReentrantReadWriteLock();
+				Lock lock = readWriteLock.readLock();
+					
+				try {
+					lock.lock();
 					Iterator<Grupo> i = grupos.iterator();
 					int index = 0;
 					while(i.hasNext()) {
@@ -133,30 +106,42 @@ public class Main extends Thread {
 						System.out.println("\n"+index+" - "+g.getNome());
 					}
 					
-					System.out.println("\ndigite o numero do grupo: ");
 					
-					int grupoIndex = sc.nextInt();
+				}finally {
+					lock.unlock();
+				}
 					
-					Scanner s = new Scanner(System.in);
+				System.out.println("\ndigite o numero do grupo: ");
+				
+				int grupoIndex = sc.nextInt();
+				Cliente c = null;
+				Grupo g = null;
+				Scanner s = new Scanner(System.in);
+				Lock lock2 = readWriteLock.writeLock();
+				try {
+					g = grupos.get(grupoIndex-1);
+					System.out.println("\ndigite o ip do contato: ");
+					String addr = s.nextLine();
+					System.out.println("\ndigite o nome do contato: ");
+					String nome = s.nextLine();
+				    c = new Cliente(addr,nome);
+					lock2.lock();
+					g.addClient(c);
 					
-					try {
-						Grupo g = grupos.get(grupoIndex-1);
-						System.out.println("\ndigite o ip do contato: ");
-						String addr = s.nextLine();
-						System.out.println("\ndigite o nome do contato: ");
-						String nome = s.nextLine();
-						Cliente c = new Cliente(addr,nome);
-						
-						g.addClient(c);
-						
-						Sync sync = new Sync(c.getAddr(),"add",g);
-						sync.start();
-											
-					}catch(IndexOutOfBoundsException e) {
-						System.out.println("\nO grupo selecionado não exsite\n");
-					}
+					
+										
+				}catch(IndexOutOfBoundsException e) {
+					System.out.println("\nO grupo selecionado não exsite\n");
+					lock2.unlock();
+				}finally {
+					lock2.unlock();
 				}
 				
+				if(!c.equals(null)&&!g.equals(null)) {
+					Sync sync = new Sync(c,"add",g);
+					sync.start();
+				}
+					
 			}
 			
 			if(com.equals("4")) {
@@ -170,11 +155,22 @@ public class Main extends Thread {
 	public static void enviar(String m, int g) throws UnknownHostException {
 		Grupo grupo = grupos.get(g-1);
 		Iterator<Cliente> destinos = grupo.getClientes().iterator();
-		Cliente c = new Cliente("você",localhost);
-		Mensagem men = new Mensagem(m,clock,c);
-		Delivery d = new Delivery(destinos,grupo,men);
-		grupo.send(men);
-		d.start();		
+		Cliente c = grupo.searchClient(localhost);
+		Mensagem men = null;
+		ReadWriteLock lock = new ReentrantReadWriteLock();
+		Lock readLock = lock.readLock();
+		try {
+			readLock.lock();
+			
+			men =  new Mensagem(m,new int[1],c);
+			grupo.send(men);
+			Delivery d = new Delivery(destinos,grupo,men);
+			d.start();		
+		}finally {
+			readLock.unlock();
+		}
+		 
+		
 		
 		
 	}
@@ -215,16 +211,31 @@ public class Main extends Thread {
 			    	 for(int j = 0; j<50;j++) {
 							System.out.println("");
 					 }
-			    	 System.out.println("     "+viewGroup.getNome());
+			    	 System.out.print("     "+viewGroup.getNome());
+			    	 System.out.print(" seu relógio local: {");
+			    	 for(int index = 0;index<viewGroup.getRelogio().length;index++) {
+			    		 if(index==viewGroup.getRelogio().length-1) {
+			    			 System.out.print(viewGroup.getRelogio()[index]);
+			    		 }else {
+			    			 System.out.print(viewGroup.getRelogio()[index]+",");
+			    		 }
+			    		
+			    	 }
+			    	 System.out.print("}");
 					 while(men.hasNext()) {
 						 Mensagem mens = men.next();
 					    	
 						 if(mens.getSource().getAddr().equals(localhost)) {
 							 Mensagem out = (Mensagem) mens;
-					    	System.out.println(" \n                  você"+": \n                  		"+out.getBody()+" "+out.getTime()+"\n");
+					    	System.out.println(" \n                  você"+": \n                  		"+out.getBody()+"\n");
 						 }else {
 							 Mensagem IN = (Mensagem) mens;
-							 System.out.println(" \n"+IN.getSource().getAddr()+": \n		"+IN.getBody()+" "+IN.getTime()+"\n");
+							 System.out.println(" \n"+IN.getSource().getAddr()+": \n		"+IN.getBody()+"\n");
+							 System.out.print(" relógio do remetente: {");
+					    	 for(int index = 0;index<IN.getTime().length;index++) {
+					    		 System.out.print(IN.getTime()[index]+",");
+					    	 }
+					    	 System.out.print("}\n");
 					    }
 					    		
 					 }
