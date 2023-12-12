@@ -19,6 +19,7 @@ public class Main extends Thread {
 	public  int grupoView;
 	public  Receiver receptor;
 	public  String localhost;
+	public  Unpacker unpacker;
 
 	
 	
@@ -42,8 +43,12 @@ public class Main extends Thread {
 		
 		localhost = ip.getHostAddress();
 		
+		unpacker = new Unpacker();
+		unpacker.start();
+		
 		receptor = new Receiver();
 		receptor.start();
+		
 		
 		Scanner sc = new Scanner(System.in);
 		
