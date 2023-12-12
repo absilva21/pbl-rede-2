@@ -3,9 +3,9 @@ package application;
 import dados.Mensagem;
 import java.util.Comparator;
 
-public class MessagemComparator implements Comparator<Mensagem> {
+public class MensagemComparator implements Comparator<Mensagem> {
 
-	public MessagemComparator() {
+	public MensagemComparator() {
 		// TODO Auto-generated constructor stub
 	}
 	

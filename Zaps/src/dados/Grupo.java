@@ -5,9 +5,10 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
-
+import java.util.Collections;
 import application.Application;
 import application.Main;
+import application.MensagemComparator;
 	
 	public class Grupo {
 	private String nome;
@@ -169,6 +170,10 @@ import application.Main;
 		}
 		
 		return result;
+	}
+	
+	public void ordenarMensagens() {
+		 Collections.sort(this.mensagens, new MensagemComparator());
 	}
 	
 	public Grupo(String name, String adm) {
