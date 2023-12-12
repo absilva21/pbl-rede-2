@@ -24,7 +24,7 @@ import dados.Mensagem;
 public class Sync extends Thread {
 	
 	private Cliente destino;
-	private String tipo;
+	private int tipo;
 	private Object mensagem;
 	
 	
@@ -42,13 +42,13 @@ public class Sync extends Thread {
 
 
 
-	public String getTipo() {
+	public int getTipo() {
 		return tipo;
 	}
 
 
 
-	public void setTipo(String tipo) {
+	public void setTipo(int tipo) {
 		this.tipo = tipo;
 	}
 
@@ -64,7 +64,7 @@ public class Sync extends Thread {
 		this.mensagem = mensagem;
 	}
 
-	public Sync(Cliente d, String t, Object m) {
+	public Sync(Cliente d, int t, Object m) {
 		this.destino = d;
 		this.tipo = t;
 		this.mensagem = m;
@@ -144,16 +144,15 @@ public class Sync extends Thread {
 					JSONObject jsonCliente = new JSONObject();
 					jsonCliente.put("addr", this.destino.getAddr());
 					jsonCliente.put("nome",this.destino.getNome());
-					jsonCliente.put("id", this.destino.getId());
 					jsonCliente.put("grupo",g.getNome());
 					JSONObject jsonMen = new JSONObject();
-					jsonMen.put("com", "addc");
+					jsonMen.put("com", 2);
 					jsonMen.put("body", jsonCliente);
 					
-					if(!c.getAddr().equals(this.destino.getAddr())&&!c.getAddr().equals(Main.localhost)) {
+					if(!c.getAddr().equals(this.destino.getAddr())&&!c.getAddr().equals(Application.main.localhost)) {
 						String pacote2 = "type: com\nbody: "+jsonMen.toJSONString();
-						byte[] buffer2 = new byte[1024];
-						buffer = pacote2.getBytes(StandardCharsets.UTF_8);
+						byte[] buffer2 = new byte[2048];
+						buffer2 = pacote2.getBytes(StandardCharsets.UTF_8);
 						InetAddress destiny2 = InetAddress.getByName(c.getAddr());
 						DatagramPacket sendPacket2 = new DatagramPacket(buffer2,buffer2.length,destiny2,7000);
 						serverSocket.send(sendPacket2);

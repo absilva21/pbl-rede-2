@@ -14,11 +14,11 @@ import dados.Mensagem;
 
 public class Main extends Thread {
 	
-	public static LinkedList<Grupo> grupos;
-	public static LinkedList<Mensagem> menssagens;
-	public static int grupoView;
-	public static Receiver receptor;
-	public static String localhost;
+	public  LinkedList<Grupo> grupos;
+	public  LinkedList<Mensagem> menssagens;
+	public  int grupoView;
+	public  Receiver receptor;
+	public  String localhost;
 
 	
 	
@@ -138,7 +138,7 @@ public class Main extends Thread {
 				}
 				
 				if(!c.equals(null)&&!g.equals(null)) {
-					Sync sync = new Sync(c,"add",g);
+					Sync sync = new Sync(c,1,g);
 					sync.start();
 				}
 					
@@ -152,10 +152,10 @@ public class Main extends Thread {
 		}
 	}
 	
-	public static void enviar(String m, int g) throws UnknownHostException {
+	public  void enviar(String m, int g) throws UnknownHostException {
 		Grupo grupo = grupos.get(g-1);
 		Iterator<Cliente> destinos = grupo.getClientes().iterator();
-		Cliente c = grupo.searchClient(localhost);
+		Cliente c = grupo.searchClient(this.localhost);
 		Mensagem men = null;
 		ReadWriteLock lock = new ReentrantReadWriteLock();
 		Lock readLock = lock.readLock();
@@ -175,17 +175,17 @@ public class Main extends Thread {
 		
 	}
 	
-	public static void exibir(){
+	public void exibir(){
 		try {
 			Grupo viewGroup = null;
 			
-			viewGroup = grupos.get(grupoView-1); 
+			viewGroup = this.grupos.get(this.grupoView-1); 
 			Iterator<Mensagem> men = viewGroup.getMensagens().iterator();
 		    System.out.println("     "+viewGroup.getNome());
 		    while(men.hasNext()) {
 		    	Mensagem mens = men.next();
 		    	
-		    	if(mens.getSource().getAddr().equals(localhost)) {
+		    	if(mens.getSource().getAddr().equals(this.localhost)) {
 		    		Mensagem out = (Mensagem) mens;
 		    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+" "+out.getTime()+"\n");
 		    	}else {
@@ -203,10 +203,10 @@ public class Main extends Thread {
 				System.out.println("\ndigite uma mensagem para o grupo ou ENTER para sair:");
 			    mensagem = leitor.nextLine();
 			    if(mensagem.equals("")) {
-			    	grupoView = 0;
+			    	this.grupoView = 0;
 			    	break;
 			    }else {
-			    	 enviar(mensagem, grupoView);
+			    	 enviar(mensagem, this.grupoView);
 			    	 men = viewGroup.getMensagens().iterator();
 			    	 for(int j = 0; j<50;j++) {
 							System.out.println("");

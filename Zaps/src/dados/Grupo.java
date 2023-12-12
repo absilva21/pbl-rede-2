@@ -5,6 +5,8 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
+
+import application.Application;
 import application.Main;
 	
 	public class Grupo {
@@ -60,7 +62,7 @@ import application.Main;
 	
 	@Deprecated
 	public void addMessage(Mensagem m) {
-		Cliente localHost = this.searchClient(Main.localhost);
+		Cliente localHost = this.searchClient(Application.main.localhost);
 		int index = localHost.getId();
 		for(int i=0;i<this.relogio.length;i++) {
 			if(i==index) {
@@ -117,18 +119,21 @@ import application.Main;
 	}
 	
 	public void receive(Mensagem m) {
+		Cliente c = this.searchClient(Application.main.localhost);
 		for(int i=0;i<this.relogio.length;i++) {
 			
 			this.relogio[i] = m.getTime()[i];
 			
 		}
 		
+		this.relogio[c.getId()]++;
+		
 		this.mensagens.add(m);
 		
 	}
 	
 	public void send(Mensagem m) {
-		Cliente localHost = this.searchClient(Main.localhost);
+		Cliente localHost = this.searchClient(Application.main.localhost);
 		int index = localHost.getId();
 		this.relogio[index]++;
 		m.setTime(this.relogio);

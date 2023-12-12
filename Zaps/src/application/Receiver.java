@@ -60,82 +60,80 @@ public class Receiver extends Thread {
 					if(tipo.equals("com")) {
 						
 						System.out.println("\n"+json.toString());
-						String tipoCom = (String)json.get("com");
+						Long tipoComLong = (Long) json.get("com");
+						int tipoComInt = tipoComLong.intValue();
 						
-						if(tipoCom.equals("add")) {
-							JSONObject grupoJson = (JSONObject) json.get("body");
-							String nomeGrupo = (String) grupoJson.get("nome");
-							String admGrupo = (String) grupoJson.get("adm");
-							Grupo novoGrupo = new Grupo(nomeGrupo,admGrupo);
-							JSONArray mens = (JSONArray)  grupoJson.get("mensagens");
-							JSONArray partici =  (JSONArray) grupoJson.get("clientes");
-							
-							for(int i=0;i<partici.size();i++) {
-								JSONObject par = (JSONObject) partici.get(i);
-								String addr = (String) par.get("addr");
-								String nome = (String) par.get("nome");
-								Long idLong = (Long) par.get("id");
-								int id = idLong.intValue();
+						switch(tipoComInt) {
+							case 1:
+								JSONObject grupoJson = (JSONObject) json.get("body");
+								String nomeGrupo = (String) grupoJson.get("nome");
+								String admGrupo = (String) grupoJson.get("adm");
+								Grupo novoGrupo = new Grupo(nomeGrupo,admGrupo);
+								JSONArray mens = (JSONArray)  grupoJson.get("mensagens");
+								JSONArray partici =  (JSONArray) grupoJson.get("clientes");
+								
+								for(int i=0;i<partici.size();i++) {
+									JSONObject par = (JSONObject) partici.get(i);
+									String addr = (String) par.get("addr");
+									String nome = (String) par.get("nome");
+									Long idLong = (Long) par.get("id");
+									int id = idLong.intValue();
+									Cliente c = new Cliente(addr,nome);
+									c.setId(id);
+									novoGrupo.addClient(c);	
+								}
+								
+								
+								for(int i = 0;i<mens.size();i++) {
+									JSONObject mensa = (JSONObject) mens.get(i);
+									String bodyMen = (String) mensa.get("body");
+									JSONArray tempoMen = (JSONArray) mensa.get("temp");
+									String addrOri = (String) mensa.get("origem");
+								
+									int[] tempo = new int[tempoMen.size()];
+									for(int j = 0;j<tempo.length;i++) {
+										int valor = Integer.parseInt((String)tempoMen.get(j));
+										tempo[j] = valor;
+									}
+									
+									Cliente c = novoGrupo.searchClient(addrOri);
+									
+									Mensagem men = new Mensagem(bodyMen,tempo,c);
+									novoGrupo.receive(men);
+									
+								}
+								
+								
+								
+								ReadWriteLock  readWriteLock = new ReentrantReadWriteLock();
+								Lock lock = readWriteLock.writeLock();
+								try {
+									lock.lock();
+									Application.main.grupos.add(novoGrupo);
+								}finally {
+									lock.unlock();
+								}
+								break;
+							case 2:
+								JSONObject jsonBody2 = (JSONObject) json.get("body");
+								String addr = (String) jsonBody2.get("addr");
+								String nome = (String) jsonBody2.get("nome");
+								String grupo = (String) jsonBody2.get("grupo");
 								Cliente c = new Cliente(addr,nome);
-								c.setId(id);
-								novoGrupo.addClient(c);	
-							}
-							
-							
-							for(int i = 0;i<mens.size();i++) {
-								JSONObject mensa = (JSONObject) mens.get(i);
-								String bodyMen = (String) mensa.get("body");
-								JSONArray tempoMen = (JSONArray) mensa.get("temp");
-								String addrOri = (String) mensa.get("origem");
-							
-								int[] tempo = new int[tempoMen.size()];
-								for(int j = 0;j<tempo.length;i++) {
-									int valor = Integer.parseInt((String)tempoMen.get(j));
-									tempo[j] = valor;
+								
+								
+								Iterator<Grupo> it = Application.main.grupos.iterator();
+								
+								while(it.hasNext()) {
+									Grupo g = (Grupo) it.next();
+									if(g.getNome().equals(grupo)) {
+										g.addClient(c);
+									}
 								}
 								
-								Cliente c = novoGrupo.searchClient(addrOri);
 								
-								Mensagem men = new Mensagem(bodyMen,tempo,c);
-								novoGrupo.receive(men);
-								
-							}
-							
-							
-							
-							ReadWriteLock  readWriteLock = new ReentrantReadWriteLock();
-							Lock lock = readWriteLock.writeLock();
-							try {
-								lock.lock();
-								Main.grupos.add(novoGrupo);
-							}finally {
-								lock.unlock();
-							}
-							
 						}
 						
-						if(tipo.equals("addc")) {
-							JSONObject jsonBody2 = (JSONObject) json.get("body");
-							String addr = (String) jsonBody2.get("addr");
-							String nome = (String) jsonBody2.get("nome");
-							Long idLong = (Long) jsonBody2.get("id");
-							String grupo = (String) jsonBody2.get("grupo");
-							int id = idLong.intValue();
-							Cliente c = new Cliente(addr,nome);
-							c.setId(id);
-							
-							Iterator<Grupo> it = Main.grupos.iterator();
-							
-							while(it.hasNext()) {
-								Grupo g = (Grupo) it.next();
-								if(g.getNome().equals(grupo)) {
-									g.addClient(c);
-								}
-							}
-							
-						}
-						
-					
 					}
 					
 					if(tipo.equals("men")) {
@@ -155,8 +153,8 @@ public class Receiver extends Thread {
 							
 							boolean participante = grupoDestino.isPart(origem);
 							
-							if(Main.grupoView>0&&participante) {
-								viewGroup = Main.grupos.get(Main.grupoView-1);
+							if(Application.main.grupoView>0&&participante) {
+								viewGroup = Application.main.grupos.get(Application.main.grupoView-1);
 								if(viewGroup.getNome().equals(grupoDestino.getNome())) {
 							
 									viewGroup.receive(new Mensagem(mensagem,tempo,viewGroup.searchClient(origem)));
@@ -179,7 +177,7 @@ public class Receiver extends Thread {
 									    while(i.hasNext()) {
 									    	Mensagem m = i.next();
 									    	
-									    	if(m.getSource().getAddr().equals(Main.localhost)) {
+									    	if(m.getSource().getAddr().equals(Application.main.localhost)) {
 									    		Mensagem out = (Mensagem) m;
 									    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+"\n");
 									    	}else {
@@ -208,8 +206,8 @@ public class Receiver extends Thread {
 								}
 							}else {
 								if(participante) {
-									viewGroup = Main.grupos.get(Main.grupoView-1);
-									grupoDestino.receive(new Mensagem(mensagem,tempo,viewGroup.searchClient(origem)));
+									
+									grupoDestino.receive(new Mensagem(mensagem,tempo,grupoDestino.searchClient(origem)));
 								}
 							}
 						}
@@ -242,7 +240,7 @@ public class Receiver extends Thread {
 	public Grupo grupoExiste(String grupo) {
 		
 		Grupo result = null;
-		Iterator<Grupo> it = Main.grupos.iterator();
+		Iterator<Grupo> it = Application.main.grupos.iterator();
 		
 		while(it.hasNext()) {
 			Grupo g = (Grupo) it.next();

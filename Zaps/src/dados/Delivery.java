@@ -83,7 +83,7 @@ public class Delivery extends Thread  {
 			while(destinos.hasNext()) {
 
 				Cliente c = (Cliente) destinos.next();
-				if(!c.getAddr().equals(Main.localhost)) {
+				if(!c.getAddr().equals(Application.main.localhost)) {
 					int porta = 7010;
 					int[] relogio = mensagem.getTime();
 					JSONArray relogioJson = new JSONArray();
@@ -95,7 +95,7 @@ public class Delivery extends Thread  {
 					serverSocket = new DatagramSocket(porta);
 					byte[] buffer = new byte[1024];
 					InetAddress destiny = InetAddress.getByName(c.getAddr());
-					String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+Main.localhost+"\",\"body\":\""+ mensagem.getBody()+"\",\"tempo\":"+relogioJson.toJSONString()+",\"id\":\""+mensagem.getSource().getId()+"\"}";
+					String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+Application.main.localhost+"\",\"body\":\""+ mensagem.getBody()+"\",\"tempo\":"+relogioJson.toJSONString()+",\"id\":\""+mensagem.getSource().getId()+"\"}";
 					buffer = payload.getBytes(StandardCharsets.UTF_8);
 					DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,destiny,7000);
 					serverSocket.send(sendPacket);
