@@ -5,10 +5,19 @@ public class Mensagem {
 	private String body;
 	private int[] time;
 	private Cliente source;
+	private int idLocal;
 	 
 
 	
 	
+	public int getIdLocal() {
+		return idLocal;
+	}
+
+	public void setIdLocal(int idLocal) {
+		this.idLocal = idLocal;
+	}
+
 	public Cliente getSource() {
 		return source;
 	}
@@ -37,6 +46,7 @@ public class Mensagem {
 		this.body = b;
 		this.time = t;
 		this.source = c;
+		this.idLocal = 0;
 		
 	}
 

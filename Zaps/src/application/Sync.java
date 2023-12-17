@@ -107,6 +107,7 @@ public class Sync extends Thread {
 						tempoJson.add(Integer.toString(tempo[it]));
 					}
 					jsonMensagem.put("temp", m.getTime());
+					jsonMensagem.put("idm", m.getIdLocal());
 					mensagens.add(jsonMensagem);
 				}
 				

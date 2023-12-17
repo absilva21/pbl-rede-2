@@ -95,11 +95,12 @@ public class Delivery extends Thread  {
 					serverSocket = new DatagramSocket(porta);
 					byte[] buffer = new byte[1024];
 					InetAddress destiny = InetAddress.getByName(c.getAddr());
-					String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+Application.main.localhost+"\",\"body\":\""+ mensagem.getBody()+"\",\"tempo\":"+relogioJson.toJSONString()+",\"id\":\""+mensagem.getSource().getId()+"\"}";
+					String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+Application.main.localhost+"\",\"body\":\""+ mensagem.getBody()+"\",\"tempo\":"+relogioJson.toJSONString()+",\"id\":\""+mensagem.getSource().getId()+"\",\"idm\""+mensagem.getIdLocal()+"\"}";
 					buffer = payload.getBytes(StandardCharsets.UTF_8);
 					DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,destiny,7000);
 					serverSocket.send(sendPacket);
 					serverSocket.close();
+					
 				}
 				
 			}

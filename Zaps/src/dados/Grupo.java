@@ -7,13 +7,16 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Collections;
 import application.Application;
-import application.Main;
 import application.MensagemComparator;
+import application.SyncM;
 	
 	public class Grupo {
 	private String nome;
 	private String adm;
 	private int[] relogio;
+	private int idIndex;
+	private SyncM syncM;
+
 	
 
 	private LinkedList<Mensagem> mensagens;
@@ -59,6 +62,22 @@ import application.MensagemComparator;
 
 	public void setMensagens(LinkedList<Mensagem> mensagens) {
 		this.mensagens = mensagens;
+	}
+	
+	public int getIdIndex() {
+		return idIndex;
+	}
+
+	public void setIdIndex(int idIndex) {
+		this.idIndex = idIndex;
+	}
+	
+	public SyncM getSyncM() {
+		return syncM;
+	}
+
+	public void setSyncM(SyncM syncM) {
+		this.syncM = syncM;
 	}
 	
 	@Deprecated
@@ -119,6 +138,36 @@ import application.MensagemComparator;
 		return result;
 	}
 	
+	public LinkedList<Mensagem> getMensageSource(String addr){
+		LinkedList<Mensagem> result = new LinkedList<Mensagem>();
+		Iterator<Mensagem> i = this.mensagens.iterator();
+		while(i.hasNext()) {
+			Mensagem m = i.next();
+			String source = m.getSource().getAddr();
+			if(source.equals(addr)) {
+				result.add(m);
+			}
+		}
+		return result;
+	}
+	
+	public Mensagem getMensage(int id) {
+		Mensagem result = null;
+		
+		Iterator<Mensagem> i = this.mensagens.iterator();
+		
+		while(i.hasNext()) {
+			Mensagem m = i.next();
+			if(id==m.getIdLocal()) {
+				result = m;
+				break;
+			}
+		}
+		
+		
+		return result;
+	}
+	
 	public void receive(Mensagem m) {
 		Cliente c = this.searchClient(Application.main.localhost);
 		for(int i=0;i<this.relogio.length;i++) {
@@ -135,6 +184,8 @@ import application.MensagemComparator;
 	
 	public void send(Mensagem m) {
 		Cliente localHost = this.searchClient(Application.main.localhost);
+		this.idIndex++;
+		m.setIdLocal(this.idIndex);
 		int index = localHost.getId();
 		this.relogio[index]++;
 		m.setTime(this.relogio);
@@ -184,6 +235,9 @@ import application.MensagemComparator;
 		this.mensagens = new LinkedList<Mensagem>();
 		this.relogio = new int[0];
 		this.addClient(new Cliente(adm,"você"));
+		this.idIndex = 0;
+		this.syncM = new SyncM(this);
+		this.syncM.start();
 	}
 
 }

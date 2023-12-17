@@ -1,5 +1,12 @@
 package application;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.locks.Lock;
@@ -83,7 +90,8 @@ public class Unpacker extends Thread {
 									String bodyMen = (String) mensa.get("body");
 									JSONArray tempoMen = (JSONArray) mensa.get("temp");
 									String addrOri = (String) mensa.get("origem");
-								
+									Long idLocal = (Long) mensa.get("idm");
+									int idLocalValue = idLocal.intValue();
 									int[] tempo = new int[tempoMen.size()];
 									for(int j = 0;j<tempo.length;i++) {
 										int valor = Integer.parseInt((String)tempoMen.get(j));
@@ -93,6 +101,7 @@ public class Unpacker extends Thread {
 									Cliente c = novoGrupo.searchClient(addrOri);
 									
 									Mensagem men = new Mensagem(bodyMen,tempo,c);
+									men.setIdLocal(idLocalValue);
 									novoGrupo.receive(men);
 									
 								}
@@ -108,6 +117,7 @@ public class Unpacker extends Thread {
 									lock2.unlock();
 								}
 								break;
+								
 							case 2:
 								JSONObject jsonBody2 = (JSONObject) json.get("body");
 								String addr = (String) jsonBody2.get("addr");
@@ -124,7 +134,40 @@ public class Unpacker extends Thread {
 										g.addClient(c);
 									}
 								}
+								break;
 								
+							case 3:
+								Iterator<Grupo> i = Application.main.grupos.iterator();
+								String nomeGrupo2 = (String) json.get("grupo");
+								String destino = (String) json.get("source");
+								while(i.hasNext()) {
+									Grupo g = (Grupo) i.next();
+									if(g.getNome().equals(nomeGrupo2)) {
+										int id = 0;
+										ReadWriteLock  readWriteLock3 = new ReentrantReadWriteLock();
+										Lock lock3 = readWriteLock3.writeLock();
+										try {
+											lock3.lock();
+											id = g.getIdIndex();
+										}finally {
+											lock3.unlock();
+										}
+										
+										JSONObject jsonResposta = new JSONObject();
+										jsonResposta.put("id", id);
+										String jsonString = jsonResposta.toJSONString();
+										DatagramSocket serverSocket;
+										serverSocket = new DatagramSocket(7050);
+										byte[] buffer = new byte[1024];
+										buffer = jsonString.getBytes(StandardCharsets.UTF_8);
+										InetAddress destiny = InetAddress.getByName(destino);
+										DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,destiny,7030);
+										serverSocket.send(sendPacket);
+										serverSocket.close();
+										
+									}
+								}
+								break;
 								
 						}
 						
@@ -135,6 +178,8 @@ public class Unpacker extends Thread {
 						String origem = json.get("origem").toString();
 						String destino = json.get("grupo").toString();
 						JSONArray tempoJson = (JSONArray) json.get("tempo");
+						Long idLocal = (Long) json.get("idm");
+						int idLocalValue = idLocal.intValue();
 						int[] tempo = new int[tempoJson.size()];
 						for(int i = 0; i<tempoJson.size();i++) {
 							int valor = Integer.parseInt( (String) tempoJson.get(i));
@@ -150,8 +195,9 @@ public class Unpacker extends Thread {
 							if(Application.main.grupoView>0&&participante) {
 								viewGroup = Application.main.grupos.get(Application.main.grupoView-1);
 								if(viewGroup.getNome().equals(grupoDestino.getNome())) {
-							
-									viewGroup.receive(new Mensagem(mensagem,tempo,viewGroup.searchClient(origem)));
+									Mensagem nova = new Mensagem(mensagem,tempo,viewGroup.searchClient(origem));
+									nova.setIdLocal(idLocalValue);
+									viewGroup.receive(nova);
 									Iterator<Mensagem> i = viewGroup.getMensagens().iterator();
 									
 									for(int j = 0; j<50;j++) {
@@ -196,12 +242,15 @@ public class Unpacker extends Thread {
 									    System.out.println("\ndigite uma mensagem para o grupo ou ENTER para sair:");
 									
 								}else {
-									grupoDestino.receive(new Mensagem(mensagem,tempo,viewGroup.searchClient(origem)));
+									Mensagem nova = new Mensagem(mensagem,tempo,viewGroup.searchClient(origem));
+									nova.setIdLocal(idLocalValue);
+									grupoDestino.receive(nova);
 								}
 							}else {
 								if(participante) {
-									
-									grupoDestino.receive(new Mensagem(mensagem,tempo,grupoDestino.searchClient(origem)));
+									Mensagem nova = new Mensagem(mensagem,tempo,grupoDestino.searchClient(origem));
+									nova.setIdLocal(idLocalValue);
+									grupoDestino.receive(nova);
 								}
 							}
 						}
@@ -209,6 +258,15 @@ public class Unpacker extends Thread {
 					
 					
 				}catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (SocketException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (UnknownHostException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
