@@ -24,14 +24,32 @@ import dados.Mensagem;
 public class SyncM extends Thread {
 	
 	private Grupo g;
+	private DatagramSocket serverSocket;
+	private DatagramSocket serverSocket2;
 
 	public SyncM(Grupo g){
 		// TODO Auto-generated constructor stub
 		this.g = g;
+		serverSocket = null;
+		serverSocket2 = null;
+		try {
+			serverSocket2 = new DatagramSocket(7040);
+		} catch (SocketException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		try {
+			serverSocket = new DatagramSocket(7030);
+		} catch (SocketException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
 	}
 	
 	@Override
 	public void run() {
+		
+		
 		
 		while(true) {
 			try {
@@ -43,18 +61,10 @@ public class SyncM extends Thread {
 					Cliente c = i.next();
 					if(!c.getAddr().equals(Application.main.localhost)) {
 						int ttl = 0;
-						DatagramSocket serverSocket = null;
-						DatagramSocket serverSocket2 = null;
+						
 						byte[] buffer2 = new byte[1024];
 						byte[] receiveData = new byte[2048];
 						
-						try {
-							serverSocket2 = new DatagramSocket(7040);
-							serverSocket = new DatagramSocket(7030);
-						} catch (SocketException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
 						
 						while(ttl<3) {
 							try {
@@ -76,7 +86,6 @@ public class SyncM extends Thread {
 								
 								DatagramPacket receivePacket = new DatagramPacket(receiveData,
 										receiveData.length);
-								//COLOCAR UM timeout
 								serverSocket.setSoTimeout(150);
 								serverSocket.receive(receivePacket);
 								String payload = new String(receivePacket.getData());
@@ -86,55 +95,58 @@ public class SyncM extends Thread {
 								
 								String resposta = payload.substring(inicioJSON, fimJSON);
 								
-								System.out.println(resposta+"\n");
-								serverSocket.close();
+				
 								JSONParser parser = new JSONParser(); 
 								JSONObject json = (JSONObject) parser.parse(resposta);
 								
 								Long idLong = (Long) json.get("id");
 								int id = idLong.intValue();
-								LinkedList<Mensagem> mensagens = g.getMensageSource(c.getAddr());
-								Iterator<Mensagem> j = mensagens.iterator();
-								Collections.sort(mensagens, new MensagemComparatorID());
 								
-								LinkedList<Integer> fouls = new  LinkedList<Integer>();
-								while(j.hasNext()) {
-									Mensagem m = j.next();
-									Mensagem m2 = j.next();
-									int dif = m2.getIdLocal() - m.getIdLocal();
-									if(dif>1) {
-										for(int g = m.getIdLocal();g<m2.getIdLocal();g++) {
-											fouls.add(g);
+								LinkedList<Mensagem> mensagens = g.getMensageSource(c.getAddr());
+								if(mensagens.size()>0) {
+									Iterator<Mensagem> j = mensagens.iterator();
+									Collections.sort(mensagens, new MensagemComparatorID());
+									
+									LinkedList<Integer> fouls = new  LinkedList<Integer>();
+									while(j.hasNext()) {
+										Mensagem m = j.next();
+										Mensagem m2 = j.next();
+										int dif = m2.getIdLocal() - m.getIdLocal();
+										if(dif>1) {
+											for(int g = m.getIdLocal()+1;g<m2.getIdLocal();g++) {
+												fouls.add(g);
+											}
 										}
 									}
-								}
-								
-								Mensagem last = mensagens.getLast();
-								
-								if(last.getIdLocal()<id) {
-									for(int h = last.getIdLocal();h<id;h++) {
-										fouls.add(h);
+									
+									Mensagem last = mensagens.getLast();
+									
+									if(last.getIdLocal()<id) {
+										for(int h = last.getIdLocal();h<id;h++) {
+											fouls.add(h);
+										}
+										fouls.add(id);
 									}
-									fouls.add(id);
+									
+									
+									JSONArray faltas = new JSONArray(); 
+									JSONObject jsonFaltas = new JSONObject();
+									Iterator<Integer> idNumber = fouls.iterator();
+									while(idNumber.hasNext()) {
+										int number = idNumber.next();
+										faltas.add(number);
+									}
+									jsonFaltas.put("grupo", g.getNome());
+									jsonFaltas.put("com", 4);
+									jsonFaltas.put("source", Application.main.localhost);
+									jsonFaltas.put("faltas", faltas);
+									
+									String pacote2 = "type: com\nbody: "+ jsonFaltas.toJSONString();
+									buffer2 = pacote2.getBytes(StandardCharsets.UTF_8);
+									DatagramPacket sendPacket3 = new DatagramPacket(buffer2,buffer2.length,destiny2,7000);
+									serverSocket2.send(sendPacket3);
 								}
 								
-								
-								JSONArray faltas = new JSONArray(); 
-								JSONObject jsonFaltas = new JSONObject();
-								Iterator<Integer> idNumber = fouls.iterator();
-								while(idNumber.hasNext()) {
-									int number = idNumber.next();
-									faltas.add(number);
-								}
-								jsonFaltas.put("grupo", g.getNome());
-								jsonFaltas.put("com", 4);
-								jsonFaltas.put("source", Application.main.localhost);
-								jsonFaltas.put("faltas", faltas);
-								
-								String pacote2 = "type: com\nbody: "+ jsonFaltas.toJSONString();
-								buffer2 = pacote2.getBytes(StandardCharsets.UTF_8);
-								DatagramPacket sendPacket3 = new DatagramPacket(buffer2,buffer2.length,destiny2,7000);
-								serverSocket2.send(sendPacket3);
 								
 							}catch (SocketException e) {
 								// TODO Auto-generated catch block
@@ -153,8 +165,7 @@ public class SyncM extends Thread {
 								
 							}
 						}
-						serverSocket.close();
-						serverSocket2.close();
+						
 					}
 					
 				}
@@ -168,7 +179,6 @@ public class SyncM extends Thread {
 				e.printStackTrace();
 			}
 		}
-		
 	}
 
 	public Grupo getG() {
@@ -179,6 +189,9 @@ public class SyncM extends Thread {
 		this.g = g;
 	}
 
-	
+	protected void finalize() {
+		serverSocket.close();;
+		serverSocket2.close();;
+	}
 
 }

@@ -151,6 +151,18 @@ import application.SyncM;
 		return result;
 	}
 	
+	public LinkedList<Mensagem> getFouls(int[] f){
+		LinkedList<Mensagem> result = new LinkedList<Mensagem>();
+		for(int i = 0;i<f.length;i++) {
+			Mensagem m = this.getMensage(f[i]);
+			if(!m.equals(null)) {
+				result.add(m);
+			}
+		}
+		
+		return result;
+	}
+	
 	public Mensagem getMensage(int id) {
 		Mensagem result = null;
 		

@@ -19,6 +19,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import dados.Cliente;
+import dados.Delivery;
 import dados.Grupo;
 import dados.Mensagem;
 
@@ -60,7 +61,6 @@ public class Unpacker extends Thread {
 					
 					if(tipo.equals("com")) {
 						
-						System.out.println("\n"+json.toString());
 						Long tipoComLong = (Long) json.get("com");
 						int tipoComInt = tipoComLong.intValue();
 						
@@ -169,6 +169,44 @@ public class Unpacker extends Thread {
 								}
 								break;
 								
+							case 4:
+								String nomeGrupo3 = (String) json.get("grupo");
+								String origem = (String) json.get("source");
+								JSONArray faltas = (JSONArray) json.get("faltas");
+								int[] idFaltas = new int[faltas.size()];
+								
+								for(int j = 0;j<faltas.size();j++) {
+									Long nLong = (Long) faltas.get(j);
+									int n = nLong.intValue();
+									idFaltas[j] = n;
+								}
+								LinkedList<Mensagem> mensf = null;
+								Iterator<Grupo> itg = Application.main.grupos.iterator();
+								Grupo grupof = null;
+								while(itg.hasNext()) {
+									Grupo g = itg.next();
+									
+									if(g.getNome().equals(nomeGrupo3)) {
+										mensf = g.getFouls(idFaltas);
+										grupof = g;
+										break;
+									}
+								}
+								
+								if(!mensf.equals(null)) {
+									Iterator<Mensagem> itf = mensf.iterator();
+									
+									while(itf.hasNext()) {
+										Mensagem m = itf.next();
+										LinkedList<Cliente> cli = new LinkedList<Cliente>();
+										Cliente cliente = grupof.searchClient(origem);
+										cli.add(cliente);
+										Delivery d = new Delivery(cli.iterator(),grupof,m);
+										d.start();
+									}
+								}
+								
+								break;
 						}
 						
 					}
