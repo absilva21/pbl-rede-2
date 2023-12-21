@@ -27,7 +27,7 @@ type: men\n
 body: {"grupo":"X","body":"X"}
 
 ```
-#Arquitetura
+# Arquitetura
 
 Cada nó do grupo tem conhecimento sobre o outro, e envia e recebe mensagens para todos.  Existe um administrador que cria o grupo e adiciona os nós, ao fazer isso ele também avisa aos nós já contidos no grupo da existência de um novo nó. Um novo nó recebe todos os dados sobre o grupo incluindo os nós contidos nele e as mensagens já enviadas anteriomente.  
 
