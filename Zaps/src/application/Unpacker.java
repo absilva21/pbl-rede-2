@@ -22,7 +22,7 @@ import dados.Cliente;
 import dados.Delivery;
 import dados.Grupo;
 import dados.Mensagem;
-
+// uma fila é usada para desempacotar o pacote 
 public class Unpacker extends Thread {
 	
 	public LinkedList<String> payloadsDtg;
@@ -55,6 +55,7 @@ public class Unpacker extends Thread {
 				JSONParser parser = new JSONParser(); 
 				
 				try {
+					
 					JSONObject json = (JSONObject) parser.parse(jsonBody);
 					String tipo = tipoArray[1];
 					
@@ -201,7 +202,7 @@ public class Unpacker extends Thread {
 										LinkedList<Cliente> cli = new LinkedList<Cliente>();
 										Cliente cliente = grupof.searchClient(origem);
 										cli.add(cliente);
-										Delivery d = new Delivery(cli.iterator(),grupof,m);
+										Delivery d = new Delivery(cli.iterator(),grupof,m,7080);
 										d.start();
 									}
 								}
@@ -216,8 +217,8 @@ public class Unpacker extends Thread {
 						String origem = json.get("origem").toString();
 						String destino = json.get("grupo").toString();
 						JSONArray tempoJson = (JSONArray) json.get("tempo");
-						Long idLocal = (Long) json.get("idm");
-						int idLocalValue = idLocal.intValue();
+						String idLocal = (String) json.get("idm");
+						int idLocalValue = Integer.parseInt(idLocal);
 						int[] tempo = new int[tempoJson.size()];
 						for(int i = 0; i<tempoJson.size();i++) {
 							int valor = Integer.parseInt( (String) tempoJson.get(i));

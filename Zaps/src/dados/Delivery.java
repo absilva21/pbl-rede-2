@@ -12,16 +12,31 @@ import org.json.simple.JSONArray;
 import application.Application;
 import application.Main;
 
-
+//aqui é feita a entrega de mensagem
 public class Delivery extends Thread  {
 	
 	private Iterator<Cliente> destinos;
 	private Grupo grupo; 
 	private Mensagem mensagem;
+	private int porta;
 	
 	
 	
 	
+
+	public int getPorta() {
+		return porta;
+	}
+
+
+
+
+	public void setPorta(int porta) {
+		this.porta = porta;
+	}
+
+
+
 
 	public Iterator<Cliente> getDestinos() {
 		return destinos;
@@ -65,10 +80,11 @@ public class Delivery extends Thread  {
 
 
 
-	public Delivery(Iterator<Cliente> d, Grupo g,Mensagem m) {
+	public Delivery(Iterator<Cliente> d, Grupo g,Mensagem m, int port) {
 		this.destinos = d;
 		this.grupo = g;
 		this.mensagem = m;
+		this.porta = port;
 	}
 	
 	
@@ -79,33 +95,33 @@ public class Delivery extends Thread  {
 		
 		try {
 			
-			
+			DatagramSocket serverSocket;
+			serverSocket = new DatagramSocket(porta);
 			while(destinos.hasNext()) {
 
 				Cliente c = (Cliente) destinos.next();
 				if(!c.getAddr().equals(Application.main.localhost)) {
-					int porta = 7010;
 					int[] relogio = mensagem.getTime();
 					JSONArray relogioJson = new JSONArray();
 					for(int i = 0; i<relogio.length;i++) {
 						String valor = Integer.toString(relogio[i]);
 						relogioJson.add(valor);
 					}
-					DatagramSocket serverSocket;
-					serverSocket = new DatagramSocket(porta);
-					byte[] buffer = new byte[1024];
+					
+					
+					byte[] buffer = new byte[2048];
 					InetAddress destiny = InetAddress.getByName(c.getAddr());
-					String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+Application.main.localhost+"\",\"body\":\""+ mensagem.getBody()+"\",\"tempo\":"+relogioJson.toJSONString()+",\"id\":\""+mensagem.getSource().getId()+"\",\"idm\""+mensagem.getIdLocal()+"\"}";
+					String payload = "type: men\nbody: {\"grupo\":\""+grupo.getNome()+"\",\"origem\":\""+Application.main.localhost+"\",\"body\":\""+ mensagem.getBody()+"\",\"tempo\":"+relogioJson.toJSONString()+",\"id\":\""+mensagem.getSource().getId()+"\",\"idm\":\""+mensagem.getIdLocal()+"\"}";
 					buffer = payload.getBytes(StandardCharsets.UTF_8);
 					DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,destiny,7000);
 					serverSocket.send(sendPacket);
-					serverSocket.close();
+					
 					
 				}
 				
 			}
 			
-			
+			serverSocket.close();
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

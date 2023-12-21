@@ -13,7 +13,7 @@ import dados.Grupo;
 import dados.Mensagem;
 
 public class Main extends Thread {
-	
+	//Programa pricipal
 	public  LinkedList<Grupo> grupos;
 	public  LinkedList<Mensagem> menssagens;
 	public  int grupoView;
@@ -169,7 +169,7 @@ public class Main extends Thread {
 			
 			men =  new Mensagem(m,new int[1],c);
 			grupo.send(men);
-			Delivery d = new Delivery(destinos,grupo,men);
+			Delivery d = new Delivery(destinos,grupo,men,7090);
 			d.start();		
 		}finally {
 			readLock.unlock();

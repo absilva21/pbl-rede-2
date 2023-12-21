@@ -248,8 +248,8 @@ import application.SyncM;
 		this.relogio = new int[0];
 		this.addClient(new Cliente(adm,"você"));
 		this.idIndex = 0;
-		this.syncM = new SyncM(this);
-		this.syncM.start();
+		//this.syncM = new SyncM(this);
+		//this.syncM.start();
 	}
 
 }

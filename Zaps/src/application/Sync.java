@@ -15,10 +15,9 @@ import dados.Grupo;
 import dados.Mensagem;
 
 
-//uma thread que envia dados ou comandos para que os nó sincronizem
+//uma thread que envia dados ou comandos para que os nós sincronizem
 /*
  add - avisa um nó que ele foi adicionado a um grupo
- up - pede a um nó os dados da mensagens contidas em um grupo
  */
 
 public class Sync extends Thread {

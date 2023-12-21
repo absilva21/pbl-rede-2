@@ -20,7 +20,7 @@ import org.json.simple.parser.ParseException;
 import dados.Cliente;
 import dados.Grupo;
 import dados.Mensagem;
-
+//aqui é sincronizado as mensagens
 public class SyncM extends Thread {
 	
 	private Grupo g;
@@ -110,7 +110,13 @@ public class SyncM extends Thread {
 									LinkedList<Integer> fouls = new  LinkedList<Integer>();
 									while(j.hasNext()) {
 										Mensagem m = j.next();
-										Mensagem m2 = j.next();
+										Mensagem m2 = null;
+										if(j.hasNext()) {
+											m2 = j.next();
+										}else {
+											break;
+										}
+										
 										int dif = m2.getIdLocal() - m.getIdLocal();
 										if(dif>1) {
 											for(int g = m.getIdLocal()+1;g<m2.getIdLocal();g++) {
@@ -131,20 +137,23 @@ public class SyncM extends Thread {
 									
 									JSONArray faltas = new JSONArray(); 
 									JSONObject jsonFaltas = new JSONObject();
-									Iterator<Integer> idNumber = fouls.iterator();
-									while(idNumber.hasNext()) {
-										int number = idNumber.next();
-										faltas.add(number);
+									if(fouls.size()>1) {
+										Iterator<Integer> idNumber = fouls.iterator();
+										while(idNumber.hasNext()) {
+											int number = idNumber.next();
+											faltas.add(number);
+										}
+										jsonFaltas.put("grupo", g.getNome());
+										jsonFaltas.put("com", 4);
+										jsonFaltas.put("source", Application.main.localhost);
+										jsonFaltas.put("faltas", faltas);
+										
+										String pacote3 = "type: com\nbody: "+ jsonFaltas.toJSONString();
+										byte[] buffer3 = pacote3.getBytes(StandardCharsets.UTF_8);
+										DatagramPacket sendPacket3 = new DatagramPacket(buffer3,buffer3.length,destiny2,7000);
+										serverSocket2.send(sendPacket3);
 									}
-									jsonFaltas.put("grupo", g.getNome());
-									jsonFaltas.put("com", 4);
-									jsonFaltas.put("source", Application.main.localhost);
-									jsonFaltas.put("faltas", faltas);
 									
-									String pacote2 = "type: com\nbody: "+ jsonFaltas.toJSONString();
-									buffer2 = pacote2.getBytes(StandardCharsets.UTF_8);
-									DatagramPacket sendPacket3 = new DatagramPacket(buffer2,buffer2.length,destiny2,7000);
-									serverSocket2.send(sendPacket3);
 								}
 								
 								

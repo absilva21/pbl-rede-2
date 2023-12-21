@@ -18,7 +18,7 @@ import dados.Grupo;
 import dados.Mensagem;
 
 
-//representa o receptor de mensagens
+//representa o receptor de pacotes
 public class Receiver extends Thread {
 	
 	public Receiver() {
