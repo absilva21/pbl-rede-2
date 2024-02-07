@@ -7,18 +7,19 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Collections;
 import application.Application;
+import application.GrupoCast;
 import application.MensagemComparator;
-import application.SyncM;
+//import application.SyncM;
 	
 	public class Grupo {
 	private String nome;
 	private String adm;
 	private int[] relogio;
 	private int idIndex;
-	private SyncM syncM;
-
+	private GrupoCast multicast;
+	//private SyncM syncM;
 	
-
+	private String addr;
 	private LinkedList<Mensagem> mensagens;
 	private LinkedList<Cliente> clientes;
 
@@ -72,13 +73,15 @@ import application.SyncM;
 		this.idIndex = idIndex;
 	}
 	
-	public SyncM getSyncM() {
+	/*public SyncM getSyncM() {
 		return syncM;
 	}
 
 	public void setSyncM(SyncM syncM) {
 		this.syncM = syncM;
-	}
+	}*/
+	
+	
 	
 	@Deprecated
 	public void addMessage(Mensagem m) {
@@ -94,6 +97,14 @@ import application.SyncM;
 		
 		m.setTime(this.relogio);
 		this.mensagens.add(m);
+	}
+
+	public GrupoCast getMulticast() {
+		return multicast;
+	}
+
+	public void setMulticast(GrupoCast multicast) {
+		this.multicast = multicast;
 	}
 
 	public void removeClient(int index) throws UnknownHostException {
@@ -202,6 +213,7 @@ import application.SyncM;
 		this.relogio[index]++;
 		m.setTime(this.relogio);
 		this.mensagens.add(m);
+	
 	}
 	
 	
@@ -239,6 +251,14 @@ import application.SyncM;
 		 Collections.sort(this.mensagens, new MensagemComparator());
 	}
 	
+	public String getAddr() {
+		return addr;
+	}
+
+	public void setAddr(String addr) {
+		this.addr = addr;
+	}
+	
 	public Grupo(String name, String adm) {
 		// TODO Auto-generated constructor stub
 		this.nome = name;
@@ -248,8 +268,10 @@ import application.SyncM;
 		this.relogio = new int[0];
 		this.addClient(new Cliente(adm,"você"));
 		this.idIndex = 0;
-		//this.syncM = new SyncM(this);
-		//this.syncM.start();
+		this.multicast = new GrupoCast(this);
+		this.multicast.start();
+		/*this.syncM = new SyncM(this);
+		this.syncM.start();*/
 	}
 
 }

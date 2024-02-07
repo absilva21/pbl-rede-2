@@ -169,8 +169,8 @@ public class Main extends Thread {
 			
 			men =  new Mensagem(m,new int[1],c);
 			grupo.send(men);
-			Delivery d = new Delivery(destinos,grupo,men,7090);
-			d.start();		
+			/*Delivery d = new Delivery(destinos,grupo,men,7090);
+			d.start();*/		
 		}finally {
 			readLock.unlock();
 		}
