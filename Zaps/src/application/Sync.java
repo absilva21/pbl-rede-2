@@ -122,10 +122,11 @@ public class Sync extends Thread {
 				body.put("mensagens", mensagens);
 				body.put("clientes", clientes);
 				JSONObject json = new JSONObject();
+				json.put("type", "com");
 				json.put("com", this.tipo);
 				json.put("body", body);
 				
-				String pacote = "type: com\nbody: "+json.toJSONString();
+				String pacote = json.toJSONString();
 				
 				byte[] buffer = new byte[1024];
 				
@@ -146,11 +147,12 @@ public class Sync extends Thread {
 					jsonCliente.put("nome",this.destino.getNome());
 					jsonCliente.put("grupo",g.getNome());
 					JSONObject jsonMen = new JSONObject();
+					jsonMen.put("type","com");
 					jsonMen.put("com", 2);
 					jsonMen.put("body", jsonCliente);
 					
 					if(!c.getAddr().equals(this.destino.getAddr())&&!c.getAddr().equals(Application.main.localhost)) {
-						String pacote2 = "type: com\nbody: "+jsonMen.toJSONString();
+						String pacote2 = jsonMen.toJSONString();
 						byte[] buffer2 = new byte[2048];
 						buffer2 = pacote2.getBytes(StandardCharsets.UTF_8);
 						InetAddress destiny2 = InetAddress.getByName(c.getAddr());

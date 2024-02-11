@@ -39,25 +39,23 @@ public class Unpacker extends Thread {
 			Lock lock = readWriteLock.writeLock();
 			try {
 				lock.lock();
-				payload = payloadsDtg.pollLast();
+				payload = payloadsDtg.pollFirst();
 			}finally {
 				lock.unlock();
 			}
 			
 			
 			if(payload!=null) {
-				String[] payloadArray = payload.split("\n");
-				String[] tipoArray = payloadArray[0].split(" ");
-				int inicioJson = payloadArray[1].indexOf('{');
-				int fimJson = payloadArray[1].lastIndexOf('}')+1;
-				String jsonBody = payloadArray[1].substring(inicioJson, fimJson);	
+				System.out.println(payload);
+				int fimJson = payload.lastIndexOf('}')+1;
+				String jsonBody = payload.substring(0, fimJson);	
 				
 				JSONParser parser = new JSONParser(); 
 				
 				try {
 					
 					JSONObject json = (JSONObject) parser.parse(jsonBody);
-					String tipo = tipoArray[1];
+					String tipo = (String)json.get("type");
 					
 					
 					if(tipo.equals("com")) {
@@ -217,8 +215,8 @@ public class Unpacker extends Thread {
 						String origem = json.get("origem").toString();
 						String destino = json.get("grupo").toString();
 						JSONArray tempoJson = (JSONArray) json.get("tempo");
-						String idLocal = (String) json.get("idm");
-						int idLocalValue = Integer.parseInt(idLocal);
+						Long idLocal = (Long) json.get("idm");
+						int idLocalValue = idLocal.intValue(); 
 						int[] tempo = new int[tempoJson.size()];
 						for(int i = 0; i<tempoJson.size();i++) {
 							int valor = Integer.parseInt( (String) tempoJson.get(i));
@@ -226,73 +224,75 @@ public class Unpacker extends Thread {
 						}
 						Grupo grupoDestino = grupoExiste(destino);
 						Grupo viewGroup = null;
-					
-						if(grupoDestino!=null) {
-							
-							boolean participante = grupoDestino.isPart(origem);
-							
-							if(Application.main.grupoView>0&&participante) {
-								viewGroup = Application.main.grupos.get(Application.main.grupoView-1);
-								if(viewGroup.getNome().equals(grupoDestino.getNome())) {
-									Mensagem nova = new Mensagem(mensagem,tempo,viewGroup.searchClient(origem));
-									nova.setIdLocal(idLocalValue);
-									viewGroup.receive(nova);
-									Iterator<Mensagem> i = viewGroup.getMensagens().iterator();
-									
-									for(int j = 0; j<50;j++) {
-										System.out.println("");
+						if(!origem.equals(Application.main.localhost)) {
+							if(grupoDestino!=null) {
+								
+								boolean participante = grupoDestino.isPart(origem);
+								
+								if(Application.main.grupoView>0&&participante) {
+									viewGroup = Application.main.grupos.get(Application.main.grupoView-1);
+									if(viewGroup.getNome().equals(grupoDestino.getNome())) {
+										Mensagem nova = new Mensagem(mensagem,tempo,viewGroup.searchClient(origem));
+										nova.setIdLocal(idLocalValue);
+										viewGroup.receive(nova);
+										Iterator<Mensagem> i = viewGroup.getMensagens().iterator();
+										
+										for(int j = 0; j<50;j++) {
+											System.out.println("");
+										}
+										
+										 System.out.println("     "+viewGroup.getNome());
+										 System.out.print(" seu relógio local: {");
+								    	 for(int index = 0;index<viewGroup.getRelogio().length;index++) {
+								    		 if(index==viewGroup.getRelogio().length-1) {
+								    			 System.out.print(viewGroup.getRelogio()[index]);
+								    		 }else {
+								    			 System.out.print(viewGroup.getRelogio()[index]+",");
+								    		 }
+								    	 }
+								    	 System.out.print("}\n");
+										    while(i.hasNext()) {
+										    	Mensagem m = i.next();
+										    	
+										    	if(m.getSource().getAddr().equals(Application.main.localhost)) {
+										    		Mensagem out = (Mensagem) m;
+										    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+"\n");
+										    	}else {
+										    		Mensagem IN = (Mensagem) m;
+										    		System.out.println(" \n"+IN.getSource().getAddr()+": \n		"+IN.getBody()+" "+IN.getTime());
+										    		 System.out.print(" relógio do remetente: {");
+											    	 for(int index = 0;index<IN.getTime().length;index++) {
+											    		 if(index==viewGroup.getRelogio().length-1) {
+											    			 System.out.print(viewGroup.getRelogio()[index]);
+											    		 }else {
+											    			 System.out.print(viewGroup.getRelogio()[index]+",");
+											    		 }
+											    		 
+											    	 }
+											    	 System.out.print("}\n");
+										    		
+										    	}
+										    	
+										    	
+										    }
+										    
+										    System.out.println("\ndigite uma mensagem para o grupo ou ENTER para sair:");
+										
+									}else {
+										Mensagem nova = new Mensagem(mensagem,tempo,viewGroup.searchClient(origem));
+										nova.setIdLocal(idLocalValue);
+										grupoDestino.receive(nova);
 									}
-									
-									 System.out.println("     "+viewGroup.getNome());
-									 System.out.print(" seu relógio local: {");
-							    	 for(int index = 0;index<viewGroup.getRelogio().length;index++) {
-							    		 if(index==viewGroup.getRelogio().length-1) {
-							    			 System.out.print(viewGroup.getRelogio()[index]);
-							    		 }else {
-							    			 System.out.print(viewGroup.getRelogio()[index]+",");
-							    		 }
-							    	 }
-							    	 System.out.print("}\n");
-									    while(i.hasNext()) {
-									    	Mensagem m = i.next();
-									    	
-									    	if(m.getSource().getAddr().equals(Application.main.localhost)) {
-									    		Mensagem out = (Mensagem) m;
-									    		System.out.println(" \n                  você"+": \n                  		"+out.getBody()+"\n");
-									    	}else {
-									    		Mensagem IN = (Mensagem) m;
-									    		System.out.println(" \n"+IN.getSource().getAddr()+": \n		"+IN.getBody()+" "+IN.getTime());
-									    		 System.out.print(" relógio do remetente: {");
-										    	 for(int index = 0;index<IN.getTime().length;index++) {
-										    		 if(index==viewGroup.getRelogio().length-1) {
-										    			 System.out.print(viewGroup.getRelogio()[index]);
-										    		 }else {
-										    			 System.out.print(viewGroup.getRelogio()[index]+",");
-										    		 }
-										    		 
-										    	 }
-										    	 System.out.print("}\n");
-									    		
-									    	}
-									    	
-									    	
-									    }
-									    
-									    System.out.println("\ndigite uma mensagem para o grupo ou ENTER para sair:");
-									
 								}else {
-									Mensagem nova = new Mensagem(mensagem,tempo,viewGroup.searchClient(origem));
-									nova.setIdLocal(idLocalValue);
-									grupoDestino.receive(nova);
-								}
-							}else {
-								if(participante) {
-									Mensagem nova = new Mensagem(mensagem,tempo,grupoDestino.searchClient(origem));
-									nova.setIdLocal(idLocalValue);
-									grupoDestino.receive(nova);
+									if(participante) {
+										Mensagem nova = new Mensagem(mensagem,tempo,grupoDestino.searchClient(origem));
+										nova.setIdLocal(idLocalValue);
+										grupoDestino.receive(nova);
+									}
 								}
 							}
 						}
+						
 					}
 					
 					

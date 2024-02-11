@@ -1,10 +1,18 @@
 package dados;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 import java.util.Collections;
 import application.Application;
 import application.GrupoCast;
@@ -213,7 +221,32 @@ import application.MensagemComparator;
 		this.relogio[index]++;
 		m.setTime(this.relogio);
 		this.mensagens.add(m);
-	
+		
+		int[] relogio = m.getTime();
+		JSONArray relogioJson = new JSONArray();
+		for(int i = 0; i<relogio.length;i++) {
+			String valor = Integer.toString(relogio[i]);
+			relogioJson.add(valor);
+		}
+		JSONObject JSONm = new JSONObject();
+		JSONm.put("type", "men");
+		JSONm.put("grupo", this.nome);
+		JSONm.put("origem", Application.main.localhost);
+		JSONm.put("body", m.getBody());
+		JSONm.put("tempo", relogioJson);
+		JSONm.put("id", m.getSource().getId());
+		JSONm.put("idm",m.getIdLocal());
+		String payload = JSONm.toJSONString();
+		byte[] buffer = new byte[2048];
+		buffer = payload.getBytes(StandardCharsets.UTF_8);
+		InetSocketAddress group = new InetSocketAddress(this.addr, 6789);
+		DatagramPacket sendPacket = new DatagramPacket(buffer,buffer.length,group);
+		try {
+			this.multicast.getSocket().send(sendPacket);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -268,6 +301,7 @@ import application.MensagemComparator;
 		this.relogio = new int[0];
 		this.addClient(new Cliente(adm,"você"));
 		this.idIndex = 0;
+		this.addr = "228.5.6.7";
 		this.multicast = new GrupoCast(this);
 		this.multicast.start();
 		/*this.syncM = new SyncM(this);
